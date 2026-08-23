@@ -10,16 +10,16 @@ function goVroomly() {
   window.open(VROOMLY_URL, "_blank", "noopener,noreferrer");
 }
 
-/* ---- GDA logo mark (car roofline + wordmark, red A). Swap for /public/logo.png later. ---- */
-function Logo() {
+/* Header logo (PNG on white) */
+function LogoImg() {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/logo.png" alt="Garage D'Aumetz" style={{ height: 62, width: "auto" }} />;
+}
+
+/* Footer wordmark (for dark background) */
+function LogoText() {
   return (
-    <div className="brand" aria-label="Garage D'Aumetz">
-      <svg width="52" height="42" viewBox="0 0 52 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 17 C 13 4, 30 3, 41 10 C 45 12, 48 15, 50 17" stroke="#141414" strokeWidth="2.6" strokeLinecap="round" />
-        <text x="26" y="37" textAnchor="middle" fontFamily="var(--font-display)" fontSize="19" fontWeight="900" letterSpacing="0.5" fill="#141414">
-          GD<tspan fill="#e11c24">A</tspan>
-        </text>
-      </svg>
+    <div className="brand">
       <div>
         <div className="brand-name">GARAGE D<span className="r">&apos;</span>AUMETZ</div>
         <div className="brand-sub">Mécanique &amp; entretien · Aumetz 57</div>
@@ -31,25 +31,25 @@ function Logo() {
 const PRESTATIONS = [
   { ic: "🛢️", t: "Vidange & entretien", d: "Huile, filtres et contrôle complet des niveaux.", p: "dès 89 €" },
   { ic: "🛑", t: "Freinage", d: "Plaquettes, disques et purge du liquide de frein.", p: "dès 120 €" },
-  { ic: "⚙️", t: "Distribution & embrayage", d: "Kit de distribution, pompe à eau, embrayage.", p: "dès 450 €" },
-  { ic: "🔧", t: "Suspension & trains", d: "Amortisseurs, rotules, géométrie et parallélisme.", p: "dès 160 €" },
-  { ic: "🩺", t: "Diagnostic électronique", d: "Lecture des défauts et recherche de panne.", p: "dès 55 €" },
+  { ic: "⚙️", t: "Distribution", d: "Kit de distribution, pompe à eau, embrayage.", p: "dès 450 €" },
+  { ic: "🔧", t: "Suspension", d: "Amortisseurs, rotules, géométrie, parallélisme.", p: "dès 160 €" },
+  { ic: "🩺", t: "Diagnostic", d: "Lecture des défauts et recherche de panne.", p: "dès 55 €" },
   { ic: "❄️", t: "Climatisation", d: "Recharge, étanchéité, filtre d'habitacle.", p: "dès 79 €" },
   { ic: "🛞", t: "Pneumatiques", d: "Montage, équilibrage et permutation.", p: "dès 22 €/pneu" },
-  { ic: "🔋", t: "Batterie & démarrage", d: "Batterie, alternateur, démarreur.", p: "dès 95 €" },
+  { ic: "🔋", t: "Batterie", d: "Batterie, alternateur, démarreur.", p: "dès 95 €" },
 ];
 
 const STEPS = [
   { n: "1", t: "Décrivez votre besoin", d: "Choisissez vos prestations : entretien, panne, pneus… en quelques clics." },
-  { n: "2", t: "Identifiez votre véhicule", d: "Votre plaque suffit — marque, modèle et motorisation sont retrouvés." },
-  { n: "3", t: "Obtenez votre prix & réservez", d: "Devis clair immédiat, puis choisissez votre créneau en atelier." },
+  { n: "2", t: "Identifiez la voiture", d: "Votre plaque suffit — marque, modèle et motorisation sont retrouvés." },
+  { n: "3", t: "Prix & créneau", d: "Devis clair immédiat, puis choisissez votre créneau en atelier." },
 ];
 
 const WHY = [
   { t: "Garage certifié Vroomly", d: "Charte de confiance, prix respecté, engagement qualité." },
   { t: "Garantie 1 an", d: "Pièces et main d'œuvre garanties sur nos interventions." },
-  { t: "Pièces d'origine ou équivalentes", d: "Des pièces de qualité, jamais du bas de gamme." },
-  { t: "Prise en charge rapide", d: "Un atelier réactif, un accueil clair, pas de mauvaise surprise." },
+  { t: "Pièces de qualité", d: "Pièces d'origine ou équivalentes, jamais du bas de gamme." },
+  { t: "Prise en charge rapide", d: "Un atelier réactif, un accueil clair, pas de surprise." },
 ];
 
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -57,9 +57,9 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
   return (
     <motion.div
       className={className}
-      initial={reduce ? false : { opacity: 0, y: 26 }}
+      initial={reduce ? false : { opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
+      viewport={{ once: true, margin: "-70px" }}
       transition={{ duration: 0.6, delay, ease: [0.2, 0.7, 0.3, 1] }}
     >
       {children}
@@ -78,24 +78,18 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const panels = [
-    { cls: "p1", tag: "ENTRETIEN", ic: "🛢️" },
-    { cls: "p2", tag: "DIAGNOSTIC", ic: "🩺" },
-    { cls: "p3", tag: "FREINAGE", ic: "🛑" },
-    { cls: "p4", tag: "PNEUS", ic: "🛞" },
-  ];
-
   return (
     <>
       {/* HEADER */}
       <header className={`hdr ${scrolled ? "scrolled" : ""}`}>
         <div className="wrap">
-          <a href="#top"><Logo /></a>
+          <a href="#top" aria-label="Garage D'Aumetz"><LogoImg /></a>
           <nav className="hdr-nav">
             <a className="link" href="#comment">Comment ça marche</a>
             <a className="link" href="#prestations">Prestations</a>
+            <a className="link" href="#avis">Avis</a>
             <a className="link" href="#contact">Contact</a>
-            <button className="btn btn-red" onClick={goVroomly}>Devis &amp; RDV en ligne</button>
+            <button className="btn btn-outline-red" onClick={goVroomly}>Devis &amp; RDV</button>
           </nav>
         </div>
       </header>
@@ -103,42 +97,38 @@ export default function Home() {
       {/* HERO */}
       <section className="hero" id="top">
         <div className="wrap hero-grid">
-          <div>
-            <motion.div
-              initial={reduce ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.2, 0.7, 0.3, 1] }}
-            >
-              <div className="hero-badge"><span className="pulse" /> Devis en ligne · <b>réponse sous 24 h</b></div>
-              <h1 className="display">Votre voiture entre de bonnes mains, <span className="r">sans prise de tête.</span></h1>
-              <p className="hero-sub">Choisissez votre prestation, obtenez un prix clair et réservez votre créneau en ligne. Garage indépendant, toutes marques, à Aumetz.</p>
-              <div className="hero-cta">
-                <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis en ligne <span className="btn-arrow">→</span></button>
-                <a className="btn btn-ghost" href="#prestations">Voir les prestations</a>
-              </div>
-              <p className="hero-micro">Devis instantané et réservation en ligne · <b>via notre partenaire Vroomly</b></p>
-              <div className="hero-trust">
-                <span><span className="tick">✓</span> Devis clair &amp; rapide</span>
-                <span><span className="tick">✓</span> Travail garanti 1 an</span>
-                <span><span className="tick">✓</span> Sans engagement</span>
-              </div>
-            </motion.div>
-          </div>
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.2, 0.7, 0.3, 1] }}
+          >
+            <div className="eyebrow">Garage indépendant · Aumetz 57</div>
+            <h1 className="display" style={{ marginTop: 18 }}>
+              Votre voiture<br />entre de <span className="r">bonnes mains</span>
+            </h1>
+            <p className="hero-sub">Choisissez votre prestation, obtenez un prix clair et réservez votre créneau en ligne. Toutes marques, travail garanti.</p>
+            <div className="hero-cta">
+              <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+              <a className="btn btn-outline" href="#prestations">Nos prestations</a>
+            </div>
+            <p className="hero-micro">Devis instantané et réservation en ligne · <b>via notre partenaire Vroomly</b></p>
+          </motion.div>
 
-          <div className="panels">
-            {panels.map((p, i) => (
-              <motion.div
-                key={p.cls}
-                className={`panel ${p.cls}`}
-                initial={reduce ? false : { scaleY: 0, opacity: 0 }}
-                animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.15 + i * 0.12, ease: [0.2, 0.7, 0.3, 1] }}
-              >
-                <span className="panel-tag">{p.tag}</span>
-                <span className="panel-ic">{p.ic}</span>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div
+            className="hero-visual"
+            initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.2, 0.7, 0.3, 1] }}
+          >
+            {/* Remplacez le bloc .hero-photo par une vraie photo de l'atelier */}
+            <div className="hero-photo">
+              <span className="hero-photo-tag">Atelier · Aumetz</span>
+              <div className="hero-panel">
+                <b>Prise en charge rapide</b>
+                <span>Un devis clair, un travail garanti 1 an. Vous savez ce que vous payez.</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -148,7 +138,7 @@ export default function Home() {
           {[0, 1].map((k) => (
             <div className="marquee-item" key={k}>
               <span>Toutes marques</span><span>Pièces d&apos;origine</span><span>Garantie 1 an</span>
-              <span>Diagnostic électronique</span><span>Vidange &amp; entretien</span><span>Freinage</span>
+              <span>Diagnostic</span><span>Vidange</span><span>Freinage</span>
               <span>Pneumatiques</span><span>Climatisation</span>
             </div>
           ))}
@@ -159,7 +149,7 @@ export default function Home() {
       <section className="section" id="comment">
         <div className="wrap">
           <div className="section-head center">
-            <Reveal><div className="eyebrow">Simple &amp; rapide</div></Reveal>
+            <Reveal><div className="eyebrow center">Simple &amp; rapide</div></Reveal>
             <Reveal delay={0.05}><h2 className="display">Votre devis en trois étapes</h2></Reveal>
             <Reveal delay={0.1}><p>Tout se fait en ligne, en quelques minutes. Votre plaque suffit pour identifier la voiture.</p></Reveal>
           </div>
@@ -175,7 +165,7 @@ export default function Home() {
             ))}
           </div>
           <Reveal delay={0.15}>
-            <div style={{ textAlign: "center", marginTop: 44 }}>
+            <div style={{ textAlign: "center", marginTop: 46 }}>
               <button className="btn btn-red" onClick={goVroomly}>Réserver mon créneau <span className="btn-arrow">→</span></button>
             </div>
           </Reveal>
@@ -199,7 +189,7 @@ export default function Home() {
                   <h4>{c.t}</h4>
                   <p>{c.d}</p>
                   <div className="card-foot">
-                    <span className="card-from">{c.p}</span>
+                    <span className="card-from tnum">{c.p}</span>
                     <span className="card-go">Réserver →</span>
                   </div>
                 </div>
@@ -209,21 +199,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* POURQUOI NOUS */}
-      <section className="section" style={{ paddingTop: 0 }}>
+      {/* EXPERTISE (dark band) */}
+      <section className="expertise section">
+        <div className="wrap exp-grid">
+          <Reveal className="exp-left">
+            <div className="eyebrow">Pourquoi nous choisir</div>
+            <h2>On a fait de la mécanique un métier de confiance</h2>
+            <p>Garage indépendant certifié : devis clair, prix respecté, travail garanti. Vous savez ce que vous payez, et pourquoi.</p>
+            <div className="exp-stats">
+              <div className="exp-stat"><b className="tnum">10+</b><span>ans d&apos;expérience</span></div>
+              <div className="exp-stat"><b className="tnum">3</b><span>mécaniciens</span></div>
+              <div className="exp-stat"><b>Toutes</b><span>marques</span></div>
+            </div>
+          </Reveal>
+          <div className="exp-right">
+            {WHY.map((w, i) => (
+              <Reveal key={w.t} delay={i * 0.08}>
+                <div className="exp-item">
+                  <div className="exp-check">✓</div>
+                  <div><b>{w.t}</b><span>{w.d}</span></div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* REVIEWS */}
+      <section className="section reviews" id="avis">
         <div className="wrap">
-          <Reveal>
-            <div className="why">
-              <div className="eyebrow">Pourquoi nous choisir</div>
-              <h2>Un garage certifié, un travail garanti</h2>
-              <p className="why-lead">Garage D&apos;Aumetz est un centre certifié : devis clair, prix respecté, travail garanti. Vous savez ce que vous payez, et pourquoi.</p>
-              <div className="why-grid">
-                {WHY.map((w) => (
-                  <div className="why-item" key={w.t}>
-                    <div className="why-check">✓</div>
-                    <div><b>{w.t}</b><span>{w.d}</span></div>
-                  </div>
-                ))}
+          <div className="section-head center">
+            <Reveal><div className="eyebrow center">Avis clients</div></Reveal>
+            <Reveal delay={0.05}><h2 className="display">Ils nous ont fait confiance</h2></Reveal>
+          </div>
+          <Reveal delay={0.1}>
+            <div className="review-card">
+              {/* Remplacez par une photo réelle d'intervention */}
+              <div className="review-photo" />
+              <div className="review-body">
+                <div className="review-stars">★★★★★</div>
+                <p className="review-quote">&laquo; Travail impeccable et devis respecté à l&apos;euro près. Accueil au top, on m&apos;a tout expliqué clairement. Je recommande sans hésiter. &raquo;</p>
+                <div className="review-who">Client vérifié</div>
+                <div className="review-meta">Entretien &amp; freinage · Avis Google</div>
               </div>
             </div>
           </Reveal>
@@ -231,8 +248,8 @@ export default function Home() {
       </section>
 
       {/* CTA BAND */}
-      <section className="section ctaband" style={{ paddingTop: 0 }}>
-        <div className="wrap">
+      <section className="section ctaband">
+        <div className="wrap inner">
           <Reveal><h2 className="display">Prêt à passer à l&apos;atelier ?</h2></Reveal>
           <Reveal delay={0.05}><p>Obtenez votre devis et réservez votre créneau en ligne, en moins de deux minutes.</p></Reveal>
           <Reveal delay={0.1}>
@@ -246,7 +263,7 @@ export default function Home() {
         <div className="wrap">
           <div className="foot-grid">
             <div>
-              <Logo />
+              <LogoText />
               <p className="foot-lead">Votre garage automobile indépendant à Aumetz, en Moselle. Toutes marques.</p>
             </div>
             <div className="foot-col">

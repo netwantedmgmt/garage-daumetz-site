@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Anton, Inter } from "next/font/google";
 import "./globals.css";
 
-const archivo = Archivo({
+const anton = Anton({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800", "900"],
+  weight: ["400"],
 });
 
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${archivo.variable} ${inter.variable} antialiased`}>
+    <html lang="fr" className={`${anton.variable} ${inter.variable} antialiased`}>
       <body>{children}</body>
     </html>
   );
