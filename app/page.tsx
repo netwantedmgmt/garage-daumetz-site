@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, useInView, useScroll, useSpring } from "framer-motion";
+import Image from "next/image";
+import { track } from "@vercel/analytics";
+import { SITE, HOURS, FAQ } from "./site";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -14,17 +16,22 @@ import {
   IconQuote,
 } from "./icons";
 
-const VROOMLY_URL =
-  "https://www.vroomly.com/garages/garage-daumetz-57710-scierie/";
+function trackEvent(name: string, props?: Record<string, string>) {
+  try { track(name, props); } catch { /* no-op hors Vercel */ }
+}
 
-function goVroomly() {
-  window.open(VROOMLY_URL, "_blank", "noopener,noreferrer");
+function goVroomly(src = "unknown") {
+  trackEvent("vroomly_click", { src });
+  window.open(SITE.vroomly, "_blank", "noopener,noreferrer");
+}
+
+function onCall(src = "unknown") {
+  trackEvent("call_click", { src });
 }
 
 /* Header logo (monogramme GDA, fond transparent) */
 function LogoImg() {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/nav-logo.png" alt="Garage D'Aumetz" style={{ height: 44, width: "auto" }} />;
+  return <Image src="/nav-logo.png" alt="Garage D'Aumetz" width={99} height={44} priority className="nav-logo" />;
 }
 
 function LogoText() {
@@ -36,35 +43,119 @@ function LogoText() {
   );
 }
 
-/* Écran d'attente affiché à la première visite */
+/* Reveal accessible : visible par défaut (sans JS / robots), animé si JS présent */
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!("IntersectionObserver" in window)) { el.classList.add("in"); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { el.classList.add("in"); io.disconnect(); } });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`reveal ${className}`} style={delay ? { transitionDelay: `${delay}s` } : undefined}>
+      {children}
+    </div>
+  );
+}
+
+function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let done = false;
+    const run = () => {
+      if (done) return; done = true;
+      if (reduce) { setVal(to); return; }
+      const start = performance.now();
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - start) / 1400);
+        setVal(to * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick); else setVal(to);
+      };
+      requestAnimationFrame(tick);
+    };
+    if (!("IntersectionObserver" in window)) { run(); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { run(); io.disconnect(); } });
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [to]);
+  return <span ref={ref} className="tnum">{Math.round(val)}{suffix}</span>;
+}
+
+/* Statut ouvert/fermé calculé en direct */
+function OpenStatus({ className = "" }: { className?: string }) {
+  const [state, setState] = useState<{ open: boolean; label: string } | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const today = HOURS[now.getDay()] || [];
+    let open = false; let until = 0;
+    for (const [s, e] of today) { if (mins >= s && mins < e) { open = true; until = e; } }
+    if (open) {
+      const h = Math.floor(until / 60); const m = until % 60;
+      setState({ open: true, label: `Ouvert · ferme à ${h}h${m ? String(m).padStart(2, "0") : "00"}` });
+    } else {
+      setState({ open: false, label: "Fermé actuellement" });
+    }
+  }, []);
+  if (!state) return null;
+  return (
+    <span className={`status ${state.open ? "status-open" : "status-closed"} ${className}`}>
+      <i aria-hidden />{state.label}
+    </span>
+  );
+}
+
+/* Écran d'attente — première visite uniquement, court */
 function Splash() {
-  const reduce = useReducedMotion();
   const [show, setShow] = useState(false);
   const [leaving, setLeaving] = useState(false);
-
   useEffect(() => {
     let seen = false;
     try { seen = localStorage.getItem("gda_visited") === "1"; } catch {}
     if (seen) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setShow(true);
     try { localStorage.setItem("gda_visited", "1"); } catch {}
-    const t1 = setTimeout(() => setLeaving(true), reduce ? 500 : 1700);
-    const t2 = setTimeout(() => setShow(false), reduce ? 750 : 2300);
+    const t1 = setTimeout(() => setLeaving(true), reduce ? 300 : 900);
+    const t2 = setTimeout(() => setShow(false), reduce ? 500 : 1300);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [reduce]);
-
+  }, []);
   if (!show) return null;
   return (
     <div
       className={`splash ${leaving ? "splash-out" : ""}`}
       aria-hidden
-      onClick={() => { setLeaving(true); setTimeout(() => setShow(false), 550); }}
+      onClick={() => { setLeaving(true); setTimeout(() => setShow(false), 450); }}
     >
       <div className="splash-inner">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/full-logo.png" alt="Garage D'Aumetz" className="splash-logo" />
+        <Image src="/full-logo.png" alt="Garage D'Aumetz" width={300} height={140} priority className="splash-logo" />
         <div className="splash-bar"><span /></div>
       </div>
+    </div>
+  );
+}
+
+/* Barre d'action collante — mobile uniquement (levier n°1 : l'appel) */
+function StickyBar() {
+  return (
+    <div className="sticky-bar">
+      <a className="sticky-btn sticky-call" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("sticky")}>
+        <IconPhone width={19} height={19} /> Appeler
+      </a>
+      <button className="sticky-btn sticky-rdv" onClick={() => goVroomly("sticky")}>
+        Devis &amp; RDV <span aria-hidden>→</span>
+      </button>
     </div>
   );
 }
@@ -82,22 +173,19 @@ const PRESTATIONS = [
 
 const PACKS = [
   {
-    price: "dès 89 €",
-    name: "Entretien & vidange",
+    price: "dès 89 €", name: "Entretien & vidange",
     d: "L'essentiel pour garder votre voiture en pleine forme.",
     lines: ["Vidange huile + filtre", "Contrôle des niveaux", "Point sécurité complet"],
     featured: false,
   },
   {
-    price: "dès 120 €",
-    name: "Freinage",
+    price: "dès 120 €", name: "Freinage",
     d: "Un freinage sûr, contrôlé et garanti 1 an.",
     lines: ["Plaquettes & disques", "Purge liquide de frein", "Contrôle de l'usure"],
     featured: true,
   },
   {
-    price: "dès 55 €",
-    name: "Diagnostic",
+    price: "dès 55 €", name: "Diagnostic",
     d: "On identifie la panne avant de toucher à quoi que ce soit.",
     lines: ["Lecture des défauts", "Recherche de panne", "Devis clair immédiat"],
     featured: false,
@@ -109,79 +197,29 @@ const WHY = [
   { t: "Pièces de qualité", d: "Pièces d'origine ou équivalentes, jamais du bas de gamme." },
 ];
 
-/* Avis clients — attribution générique « vérifié », à remplacer par de vrais avis Google. */
+/* Témoignages — attribution générique « vérifié ». ⚠️ À remplacer par de vrais avis Google (API Places). */
 const REVIEWS = [
-  {
-    q: "Travail impeccable et devis respecté à l'euro près. Accueil au top, on m'a tout expliqué clairement. Je recommande sans hésiter.",
-    who: "Client vérifié",
-    meta: "Entretien & freinage",
-  },
-  {
-    q: "Panne prise en charge le jour même, diagnostic clair et prix honnête. Ça change des grandes enseignes, on se sent en confiance.",
-    who: "Client vérifié",
-    meta: "Diagnostic & réparation",
-  },
-  {
-    q: "Vidange et distribution faites nickel, rendez-vous facile à réserver en ligne. Un garage indépendant sérieux comme on en trouve peu.",
-    who: "Client vérifié",
-    meta: "Vidange & distribution",
-  },
+  { q: "Travail impeccable et devis respecté à l'euro près. Accueil au top, on m'a tout expliqué clairement. Je recommande sans hésiter.", who: "Client vérifié", meta: "Entretien & freinage" },
+  { q: "Panne prise en charge le jour même, diagnostic clair et prix honnête. Ça change des grandes enseignes, on se sent en confiance.", who: "Client vérifié", meta: "Diagnostic & réparation" },
+  { q: "Vidange et distribution faites nickel, rendez-vous facile à réserver en ligne. Un garage indépendant sérieux comme on en trouve peu.", who: "Client vérifié", meta: "Vidange & distribution" },
 ] as const;
-
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : { opacity: 0, y: 26 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, delay, ease: [0.2, 0.7, 0.3, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function CountUp({ to, suffix = "", duration = 1.4 }: { to: number; suffix?: string; duration?: number }) {
-  const reduce = useReducedMotion();
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
-  const [val, setVal] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    if (reduce) { setVal(to); return; }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / (duration * 1000));
-      const eased = 1 - Math.pow(1 - p, 3);
-      setVal(to * eased);
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else setVal(to);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, to, duration, reduce]);
-
-  return (
-    <span ref={ref} className="tnum">
-      {Math.round(val)}
-      {suffix}
-    </span>
-  );
-}
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 });
+  const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    onScroll();
+    document.documentElement.classList.add("js");
+    let ticking = false;
+    const update = () => {
+      setScrolled(window.scrollY > 20);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const p = h > 0 ? Math.min(1, window.scrollY / h) : 0;
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${p})`;
+      ticking = false;
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -189,7 +227,7 @@ export default function Home() {
   return (
     <>
       <Splash />
-      <motion.div className="scroll-progress" style={{ scaleX: progress }} aria-hidden />
+      <div className="scroll-progress" ref={progressRef} aria-hidden />
 
       {/* HEADER */}
       <header className={`hdr ${scrolled ? "scrolled" : ""}`}>
@@ -199,8 +237,11 @@ export default function Home() {
             <a className="link" href="#prestations">Prestations</a>
             <a className="link" href="#tarifs">Tarifs</a>
             <a className="link" href="#avis">Avis</a>
-            <a className="link" href="#contact">Contact</a>
-            <button className="btn btn-outline-red" onClick={goVroomly}>Devis &amp; RDV</button>
+            <a className="link" href="#faq">FAQ</a>
+            <a className="link hdr-tel" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("header")}>
+              <IconPhone width={16} height={16} /> {SITE.phone}
+            </a>
+            <button className="btn btn-red btn-sm" onClick={() => goVroomly("header")}>Devis &amp; RDV</button>
           </nav>
         </div>
       </header>
@@ -208,51 +249,53 @@ export default function Home() {
       {/* HERO */}
       <section className="hero" id="top">
         <div className="wrap hero-grid">
-          <motion.div
-            className="hero-copy"
-            initial={reduce ? false : { opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.2, 0.7, 0.3, 1] }}
-          >
+          <div className="hero-copy">
             <div className="eyebrow">Garage indépendant · Aumetz (57)</div>
             <h1 className="display">
               Votre voiture entre de <span className="r">bonnes mains</span>
             </h1>
             <p className="hero-sub">
-              Choisissez votre prestation, obtenez un prix clair et réservez votre créneau en
-              ligne. Toutes marques, travail garanti&nbsp;1&nbsp;an.
+              Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an.
+              Toutes marques — entretien, freinage, distribution, diagnostic.
             </p>
             <div className="hero-cta">
-              <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis <span className="btn-arrow">→</span></button>
-              <a className="btn btn-outline" href="#prestations">Nos prestations</a>
+              <button className="btn btn-red" onClick={() => goVroomly("hero")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+              <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("hero")}>
+                <IconPhone width={17} height={17} /> {SITE.phone}
+              </a>
             </div>
+            <ul className="hero-proofs">
+              <li><span className="proof-ic"><IconCheck width={13} height={13} /></span>Devis en 2 min</li>
+              <li><span className="proof-ic"><IconCheck width={13} height={13} /></span>Prix respecté</li>
+              <li><span className="proof-ic"><IconCheck width={13} height={13} /></span>Garanti 1 an</li>
+            </ul>
             <div className="hero-trust">
+              <OpenStatus />
               <span className="hero-trust-stars" aria-hidden>
                 {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={15} height={15} />)}
               </span>
-              <span><b>Avis vérifiés</b> · Garage certifié Vroomly</span>
+              <span><b>Avis vérifiés</b> · certifié Vroomly</span>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="hero-media"
-            initial={reduce ? false : { opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.12, ease: [0.2, 0.7, 0.3, 1] }}
-          >
+          <div className="hero-media">
             <span className="accent-block" aria-hidden />
             <div className="hero-media-frame">
               {/* Photo d'illustration — à remplacer par une vraie photo de l'atelier GDA */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/photos/hero.jpg" alt="Mécanicien intervenant sur une voiture dans l'atelier" />
+              <Image
+                src="/photos/hero.jpg"
+                alt="Mécanicien intervenant sur une voiture dans l'atelier"
+                fill priority sizes="(max-width: 980px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
+              />
               <span className="media-badge" aria-hidden>Atelier · Aumetz</span>
             </div>
             <div className="hero-media-panel">
               <h3>Mécanique de confiance</h3>
-              <p>Devis clair, prix respecté, travail garanti&nbsp;1&nbsp;an. Vous savez ce que vous payez.</p>
+              <p>Devis clair, prix respecté, travail garanti 1 an. Vous savez ce que vous payez.</p>
               <a className="panel-link" href="#prestations">Nos prestations <span>→</span></a>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -269,18 +312,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ABOUT / BELIEF */}
+      {/* ABOUT */}
       <section className="section about">
         <div className="wrap about-grid">
           <div className="about-media">
             <span className="accent-block accent-block-left" aria-hidden />
             <div className="about-media-frame about-media-big">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/photos/engine.jpg" alt="Intervention mécanique sur un moteur" />
+              <Image src="/photos/engine.jpg" alt="Intervention mécanique sur un moteur" fill sizes="(max-width: 960px) 100vw, 45vw" style={{ objectFit: "cover" }} />
             </div>
             <div className="about-media-frame about-media-small">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/photos/wheel.jpg" alt="Montage et équilibrage de pneumatiques" />
+              <Image src="/photos/wheel.jpg" alt="Montage et équilibrage de pneumatiques" fill sizes="(max-width: 960px) 50vw, 22vw" style={{ objectFit: "cover" }} />
             </div>
           </div>
           <Reveal className="about-copy">
@@ -296,7 +337,7 @@ export default function Home() {
               <div className="stat"><b><CountUp to={3} /></b><span>mécaniciens</span></div>
               <div className="stat"><b>Toutes</b><span>marques</span></div>
             </div>
-            <button className="btn btn-dark" onClick={goVroomly}>Prendre rendez-vous <span className="btn-arrow">→</span></button>
+            <button className="btn btn-dark" onClick={() => goVroomly("about")}>Prendre rendez-vous <span className="btn-arrow">→</span></button>
           </Reveal>
         </div>
       </section>
@@ -311,7 +352,7 @@ export default function Home() {
             </div>
             <Reveal delay={0.1} className="head-right">
               <p>Toutes marques, pièces d&apos;origine ou équivalentes, tarifs de garage indépendant.</p>
-              <button className="btn btn-outline" onClick={goVroomly}>Voir tout <span className="btn-arrow">→</span></button>
+              <button className="btn btn-outline" onClick={() => goVroomly("prestations_head")}>Voir tout <span className="btn-arrow">→</span></button>
             </Reveal>
           </div>
           <div className="presta">
@@ -319,8 +360,8 @@ export default function Home() {
               const Ic = PRESTA_ICONS[c.ic];
               return (
                 <Reveal key={c.t} delay={(i % 4) * 0.06}>
-                  <div className="card" onClick={goVroomly} role="button" tabIndex={0}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && goVroomly()}>
+                  <div className="card" onClick={() => goVroomly("presta_card")} role="button" tabIndex={0}
+                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && goVroomly("presta_card")}>
                     <div className="card-ic"><Ic /></div>
                     <h4>{c.t}</h4>
                     <p>{c.d}</p>
@@ -336,14 +377,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* EXPERTISE (dark band) */}
+      {/* EXPERTISE */}
       <section className="section expertise">
         <div className="wrap exp-grid">
           <Reveal className="exp-media">
             <span className="accent-block" aria-hidden />
             <div className="exp-media-frame">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/photos/dark.jpg" alt="Voiture sur le pont de l'atelier" />
+              <Image src="/photos/dark.jpg" alt="Voiture sur le pont de l'atelier" fill sizes="(max-width: 900px) 100vw, 48vw" style={{ objectFit: "cover" }} />
             </div>
             <div className="exp-stat-chip">
               <b className="tnum"><CountUp to={10} suffix="+" /></b>
@@ -365,7 +405,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+            <button className="btn btn-red" onClick={() => goVroomly("expertise")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
           </Reveal>
         </div>
       </section>
@@ -376,7 +416,7 @@ export default function Home() {
           <div className="section-head center">
             <Reveal><div className="eyebrow center">Tarifs</div></Reveal>
             <Reveal delay={0.05}><h2 className="display">Des prix clairs, sans surprise</h2></Reveal>
-            <Reveal delay={0.1}><p>Nos interventions les plus demandées. Le prix exact est confirmé après identification de votre voiture — via Vroomly, en ligne.</p></Reveal>
+            <Reveal delay={0.1}><p>Nos interventions les plus demandées. Le prix exact est confirmé après identification de votre voiture — en ligne, en 2 minutes.</p></Reveal>
           </div>
           <div className="packs">
             {PACKS.map((p, i) => (
@@ -391,7 +431,7 @@ export default function Home() {
                       <li key={l}><span className="pack-check"><IconCheck width={13} height={13} /></span>{l}</li>
                     ))}
                   </ul>
-                  <button className={`btn ${p.featured ? "btn-light" : "btn-dark"}`} onClick={goVroomly}>
+                  <button className={`btn ${p.featured ? "btn-light" : "btn-dark"}`} onClick={() => goVroomly("pack_" + p.name)}>
                     Réserver <span className="btn-arrow">→</span>
                   </button>
                 </div>
@@ -408,14 +448,13 @@ export default function Home() {
             <Reveal><div className="eyebrow center">Avis clients</div></Reveal>
             <Reveal delay={0.05}><h2 className="display">Ils nous ont fait confiance</h2></Reveal>
             <Reveal delay={0.1}>
-              {/* Badge d'agrégat — brancher la vraie note / le lien Google Business ici */}
-              <div className="rating-badge">
+              <a className="rating-badge" href={SITE.googleReviews} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("google_reviews_click")}>
                 <IconGoogle />
                 <span className="rating-stars" aria-hidden>
                   {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={17} height={17} />)}
                 </span>
-                <span className="rating-label">Avis clients vérifiés sur Google</span>
-              </div>
+                <span className="rating-label">Voir nos avis sur Google</span>
+              </a>
             </Reveal>
           </div>
           <div className="review-grid">
@@ -431,7 +470,7 @@ export default function Home() {
                     <div className="review-avatar" aria-hidden>{r.who.charAt(0)}</div>
                     <div>
                       <div className="review-who">{r.who}</div>
-                      <div className="review-meta">{r.meta} · Avis Google</div>
+                      <div className="review-meta">{r.meta}</div>
                     </div>
                   </div>
                 </div>
@@ -441,7 +480,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BOOKING / VROOMLY */}
+      {/* FAQ */}
+      <section className="section faq" id="faq">
+        <div className="wrap">
+          <div className="section-head center">
+            <Reveal><div className="eyebrow center">FAQ</div></Reveal>
+            <Reveal delay={0.05}><h2 className="display">Vos questions, nos réponses</h2></Reveal>
+          </div>
+          <div className="faq-list">
+            {FAQ.map((f, i) => (
+              <Reveal key={f.q} delay={(i % 2) * 0.05}>
+                <details className="faq-item">
+                  <summary>{f.q}<span className="faq-plus" aria-hidden /></summary>
+                  <div className="faq-a">{f.a}</div>
+                </details>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT / RDV */}
       <section className="section booking" id="contact">
         <div className="wrap booking-grid">
           <Reveal className="booking-copy">
@@ -449,32 +508,31 @@ export default function Home() {
             <h2 className="display">Réservez en ligne en 2 minutes</h2>
             <p>
               Décrivez votre besoin, identifiez votre voiture avec la plaque, obtenez un prix clair
-              et choisissez votre créneau. Tout se fait en ligne via notre partenaire Vroomly.
+              et choisissez votre créneau. Une question ? Appelez-nous, on répond.
             </p>
             <div className="booking-cta">
-              <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis <span className="btn-arrow">→</span></button>
-              <a className="btn btn-outline" href="tel:+33382872650">
-                <IconPhone width={17} height={17} /> 03 82 87 26 50
+              <button className="btn btn-red" onClick={() => goVroomly("contact")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+              <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("contact")}>
+                <IconPhone width={17} height={17} /> {SITE.phone}
               </a>
             </div>
             <div className="booking-info">
-              <div className="binfo"><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Adresse</b><span>6 rue de l&apos;ancienne scierie, 57710 Aumetz</span></div></div>
-              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires</b><span>Lun–Ven 8h30-12h / 14h-18h · Sam 9h-12h</span></div></div>
+              <div className="binfo"><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Adresse</b><span>{SITE.street}, {SITE.postalCode} {SITE.city}</span></div></div>
+              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires <OpenStatus className="status-inline" /></b><span>Lun–Ven 8h30-12h / 14h-18h · Sam 9h-12h</span></div></div>
+              <div className="binfo"><span className="binfo-ic"><IconShield width={17} height={17} /></span><div><b>Garantie</b><span>Pièces &amp; main d&apos;œuvre garanties 1 an</span></div></div>
             </div>
           </Reveal>
-          <motion.div
-            className="booking-media"
-            initial={reduce ? false : { opacity: 0, scale: 0.97 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: [0.2, 0.7, 0.3, 1] }}
-          >
+          <Reveal className="booking-media">
             <span className="accent-block" aria-hidden />
-            <div className="booking-media-frame">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/photos/service.jpg" alt="Intervention sur une voiture au garage" />
+            <div className="booking-map-frame">
+              <iframe
+                src={SITE.mapsEmbed}
+                title="Localisation du Garage D'Aumetz à Aumetz (57710)"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 
@@ -482,9 +540,14 @@ export default function Home() {
       <section className="ctaband">
         <div className="wrap inner">
           <Reveal><h2 className="display">Prêt à passer à l&apos;atelier&nbsp;?</h2></Reveal>
-          <Reveal delay={0.05}><p>Obtenez votre devis et réservez votre créneau en ligne, en moins de deux minutes.</p></Reveal>
+          <Reveal delay={0.05}><p>Devis clair en 2 minutes, ou un coup de fil et c&apos;est réglé.</p></Reveal>
           <Reveal delay={0.1}>
-            <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis en ligne <span className="btn-arrow">→</span></button>
+            <div className="ctaband-actions">
+              <button className="btn btn-red" onClick={() => goVroomly("cta_band")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+              <a className="btn btn-light" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("cta_band")}>
+                <IconPhone width={17} height={17} /> {SITE.phone}
+              </a>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -499,9 +562,9 @@ export default function Home() {
             </div>
             <div className="foot-col">
               <h5>Coordonnées</h5>
-              <p className="foot-line"><IconPin width={16} height={16} /><span>6 rue de l&apos;ancienne scierie<br />57710 Aumetz</span></p>
-              <a className="foot-line" href="tel:+33382872650"><IconPhone width={16} height={16} /><span>03 82 87 26 50</span></a>
-              <a className="foot-line" href="mailto:garagedaumetz@gmail.com"><span className="foot-at">@</span><span>garagedaumetz@gmail.com</span></a>
+              <p className="foot-line"><IconPin width={16} height={16} /><span>{SITE.street}<br />{SITE.postalCode} {SITE.city}</span></p>
+              <a className="foot-line" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("footer")}><IconPhone width={16} height={16} /><span>{SITE.phone}</span></a>
+              <a className="foot-line" href={`mailto:${SITE.email}`}><span className="foot-at">@</span><span>{SITE.email}</span></a>
             </div>
             <div className="foot-col">
               <h5>Horaires</h5>
@@ -510,23 +573,25 @@ export default function Home() {
               <p className="foot-line foot-line-indent">Dimanche : fermé</p>
             </div>
             <div className="foot-col">
-              <h5>Devis en ligne</h5>
-              <a href={VROOMLY_URL} target="_blank" rel="noopener noreferrer">Faire mon devis</a>
+              <h5>Liens</h5>
+              <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" onClick={() => goVroomly("footer")}>Devis en ligne</a>
               <a href="#prestations">Prestations</a>
               <a href="#tarifs">Tarifs</a>
-              <a href="#avis">Avis</a>
+              <a href="#faq">FAQ</a>
+              <a href={SITE.googleReviews} target="_blank" rel="noopener noreferrer">Avis Google</a>
             </div>
           </div>
           <div className="foot-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/full-logo-light.png" alt="Garage D'Aumetz" />
+            <Image src="/full-logo-light.png" alt="Garage D'Aumetz" width={128} height={60} />
           </div>
           <div className="foot-legal">
-            <span>© 2026 Garage D&apos;Aumetz — Aumetz (57710), Moselle.</span>
+            <span>© 2026 {SITE.name} — {SITE.city} ({SITE.postalCode}), {SITE.region}.</span>
             <span>Site conçu par Netwanted</span>
           </div>
         </div>
       </footer>
+
+      <StickyBar />
     </>
   );
 }
