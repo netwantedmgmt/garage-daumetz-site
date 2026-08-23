@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { PRESTA_ICONS, IconCheck, IconStar } from "./icons";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion, useInView, useScroll, useSpring } from "framer-motion";
+import {
+  PRESTA_ICONS,
+  IconCheck,
+  IconStar,
+  IconGoogle,
+  IconShield,
+  IconClock,
+  IconPin,
+  IconPhone,
+  IconQuote,
+} from "./icons";
 
 const VROOMLY_URL =
   "https://www.vroomly.com/garages/garage-daumetz-57710-scierie/";
@@ -53,6 +63,25 @@ const WHY = [
   { t: "Prise en charge rapide", d: "Un atelier réactif, un accueil clair, pas de surprise." },
 ];
 
+/* Avis clients — attribution générique « vérifié », à remplacer par de vrais avis Google. */
+const REVIEWS = [
+  {
+    q: "Travail impeccable et devis respecté à l'euro près. Accueil au top, on m'a tout expliqué clairement. Je recommande sans hésiter.",
+    who: "Client vérifié",
+    meta: "Entretien & freinage",
+  },
+  {
+    q: "Panne prise en charge le jour même, diagnostic clair et prix honnête. Ça change des grandes enseignes, on se sent en confiance.",
+    who: "Client vérifié",
+    meta: "Diagnostic & réparation",
+  },
+  {
+    q: "Vidange et distribution faites nickel, rendez-vous facile à réserver en ligne. Un garage indépendant sérieux comme on en trouve peu.",
+    who: "Client vérifié",
+    meta: "Vidange & distribution",
+  },
+] as const;
+
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const reduce = useReducedMotion();
   return (
@@ -68,9 +97,44 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
+/* Compteur animé (déclenché à l'entrée dans le viewport) */
+function CountUp({ to, suffix = "", duration = 1.4 }: { to: number; suffix?: string; duration?: number }) {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const [val, setVal] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reduce) { setVal(to); return; }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / (duration * 1000));
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(to * eased);
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else setVal(to);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, to, duration, reduce]);
+
+  return (
+    <span ref={ref} className="tnum">
+      {Math.round(val)}
+      {suffix}
+    </span>
+  );
+}
+
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const reduce = useReducedMotion();
+  const heroVisualRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -79,8 +143,21 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /* Lueur du visuel hero qui suit le curseur (désactivée si reduced-motion) */
+  function onHeroMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduce) return;
+    const el = heroVisualRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`);
+    el.style.setProperty("--my", `${((e.clientY - r.top) / r.height) * 100}%`);
+  }
+
   return (
     <>
+      {/* SCROLL PROGRESS */}
+      <motion.div className="scroll-progress" style={{ scaleX: progress }} aria-hidden />
+
       {/* HEADER */}
       <header className={`hdr ${scrolled ? "scrolled" : ""}`}>
         <div className="wrap">
@@ -97,6 +174,7 @@ export default function Home() {
 
       {/* HERO */}
       <section className="hero" id="top">
+        <div className="hero-bg" aria-hidden />
         <div className="wrap hero-grid">
           <motion.div
             initial={reduce ? false : { opacity: 0, y: 22 }}
@@ -112,18 +190,53 @@ export default function Home() {
               <button className="btn btn-red" onClick={goVroomly}>Obtenir mon devis <span className="btn-arrow">→</span></button>
               <a className="btn btn-outline" href="#prestations">Nos prestations</a>
             </div>
+            <div className="hero-trust">
+              <span className="hero-trust-stars" aria-hidden>
+                {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={15} height={15} />)}
+              </span>
+              <span><b>Avis vérifiés</b> · Garage certifié Vroomly</span>
+            </div>
             <p className="hero-micro">Devis instantané et réservation en ligne · <b>via notre partenaire Vroomly</b></p>
           </motion.div>
 
           <motion.div
             className="hero-visual"
+            ref={heroVisualRef}
+            onMouseMove={onHeroMove}
             initial={reduce ? false : { opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0.2, 0.7, 0.3, 1] }}
           >
-            {/* Remplacez le bloc .hero-photo par une vraie photo de l'atelier */}
+            {/* Remplacez le contenu de .hero-photo par une vraie photo de l'atelier */}
             <div className="hero-photo">
               <span className="hero-photo-tag">Atelier · Aumetz</span>
+
+              {/* Chips flottantes premium */}
+              <motion.div
+                className="chip chip-rating"
+                initial={reduce ? false : { opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                <IconGoogle />
+                <div>
+                  <span className="chip-stars" aria-hidden>
+                    {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={11} height={11} />)}
+                  </span>
+                  <b>Avis Google</b>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="chip chip-guarantee"
+                initial={reduce ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.62 }}
+              >
+                <span className="chip-ic"><IconShield width={17} height={17} /></span>
+                <div><b>Garantie 1 an</b><span>Pièces &amp; main d&apos;œuvre</span></div>
+              </motion.div>
+
               <div className="hero-panel">
                 <b>Prise en charge rapide</b>
                 <span>Un devis clair, un travail garanti 1 an. Vous savez ce que vous payez.</span>
@@ -211,8 +324,8 @@ export default function Home() {
             <h2>On a fait de la mécanique un métier de confiance</h2>
             <p>Garage indépendant certifié : devis clair, prix respecté, travail garanti. Vous savez ce que vous payez, et pourquoi.</p>
             <div className="exp-stats">
-              <div className="exp-stat"><b className="tnum">10+</b><span>ans d&apos;expérience</span></div>
-              <div className="exp-stat"><b className="tnum">3</b><span>mécaniciens</span></div>
+              <div className="exp-stat"><b><CountUp to={10} suffix="+" /></b><span>ans d&apos;expérience</span></div>
+              <div className="exp-stat"><b><CountUp to={3} /></b><span>mécaniciens</span></div>
               <div className="exp-stat"><b>Toutes</b><span>marques</span></div>
             </div>
           </Reveal>
@@ -235,21 +348,37 @@ export default function Home() {
           <div className="section-head center">
             <Reveal><div className="eyebrow center">Avis clients</div></Reveal>
             <Reveal delay={0.05}><h2 className="display">Ils nous ont fait confiance</h2></Reveal>
-          </div>
-          <Reveal delay={0.1}>
-            <div className="review-card">
-              {/* Remplacez par une photo réelle d'intervention */}
-              <div className="review-photo" />
-              <div className="review-body">
-                <div className="review-stars">
-                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={19} height={19} />)}
-                </div>
-                <p className="review-quote">&laquo; Travail impeccable et devis respecté à l&apos;euro près. Accueil au top, on m&apos;a tout expliqué clairement. Je recommande sans hésiter. &raquo;</p>
-                <div className="review-who">Client vérifié</div>
-                <div className="review-meta">Entretien &amp; freinage · Avis Google</div>
+            <Reveal delay={0.1}>
+              {/* Badge d'agrégat — brancher la vraie note / le lien Google Business ici */}
+              <div className="rating-badge">
+                <IconGoogle />
+                <span className="rating-stars" aria-hidden>
+                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={17} height={17} />)}
+                </span>
+                <span className="rating-label">Avis clients vérifiés sur Google</span>
               </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
+          <div className="review-grid">
+            {REVIEWS.map((r, i) => (
+              <Reveal key={r.meta} delay={i * 0.08}>
+                <div className="review-card">
+                  <span className="review-quote-ic" aria-hidden><IconQuote /></span>
+                  <div className="review-stars" aria-hidden>
+                    {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={17} height={17} />)}
+                  </div>
+                  <p className="review-quote">{r.q}</p>
+                  <div className="review-foot">
+                    <div className="review-avatar" aria-hidden>{r.who.charAt(0)}</div>
+                    <div>
+                      <div className="review-who">{r.who}</div>
+                      <div className="review-meta">{r.meta} · Avis Google</div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -274,15 +403,15 @@ export default function Home() {
             </div>
             <div className="foot-col">
               <h5>Coordonnées</h5>
-              <p>6 rue de l&apos;ancienne scierie<br />57710 Aumetz</p>
-              <a href="tel:+33382872650">03 82 87 26 50</a>
-              <a href="mailto:garagedaumetz@gmail.com">garagedaumetz@gmail.com</a>
+              <p className="foot-line"><IconPin width={16} height={16} /><span>6 rue de l&apos;ancienne scierie<br />57710 Aumetz</span></p>
+              <a className="foot-line" href="tel:+33382872650"><IconPhone width={16} height={16} /><span>03 82 87 26 50</span></a>
+              <a className="foot-line" href="mailto:garagedaumetz@gmail.com"><span className="foot-at">@</span><span>garagedaumetz@gmail.com</span></a>
             </div>
             <div className="foot-col">
               <h5>Horaires</h5>
-              <p>Lun – Ven : 8h30-12h / 14h-18h</p>
-              <p>Samedi : 9h-12h</p>
-              <p>Dimanche : fermé</p>
+              <p className="foot-line"><IconClock width={16} height={16} /><span>Lun – Ven : 8h30-12h / 14h-18h</span></p>
+              <p className="foot-line foot-line-indent">Samedi : 9h-12h</p>
+              <p className="foot-line foot-line-indent">Dimanche : fermé</p>
             </div>
             <div className="foot-col">
               <h5>Devis en ligne</h5>
