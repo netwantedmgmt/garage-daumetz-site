@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
-import { Anton, Inter } from "next/font/google";
+import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 
 const anton = Anton({
-  variable: "--font-display",
+  variable: "--font-anton",
   subsets: ["latin"],
   weight: ["400"],
 });
 
-const inter = Inter({
-  variable: "--font-body",
+const grotesk = Space_Grotesk({
+  variable: "--font-grotesk",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const mono = Space_Mono({
+  variable: "--font-mono-src",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${anton.variable} ${inter.variable} antialiased`}>
+    <html lang="fr" className={`${anton.variable} ${grotesk.variable} ${mono.variable} antialiased`}>
       <body>{children}</body>
     </html>
   );

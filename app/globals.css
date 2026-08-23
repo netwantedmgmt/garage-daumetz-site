@@ -16,8 +16,9 @@
   --dark-line: #2a2b2f;
   --radius: 12px;
   --radius-sm: 8px;
-  --font-display: var(--font-display), Impact, system-ui, sans-serif;
-  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-anton), Impact, system-ui, sans-serif;
+  --font-body: var(--font-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-mono-src), ui-monospace, "SFMono-Regular", monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,8 +50,8 @@ img { max-width: 100%; display: block; }
 .display .r { color: var(--red); }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 12px;
-  font-family: var(--font-body); font-size: 12.5px; font-weight: 800;
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--red);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--red);
 }
 .eyebrow::before { content: ""; width: 26px; height: 3px; background: var(--red); }
 .eyebrow.center { justify-content: center; }
@@ -109,7 +110,7 @@ img { max-width: 100%; display: block; }
 /* brand (footer) */
 .brand-name { font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: .02em; line-height: 1; text-transform: uppercase; }
 .brand-name .r { color: var(--red); }
-.brand-sub { font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin-top: 6px; }
+.brand-sub { font-family: var(--font-mono); font-size: 10px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-top: 6px; }
 
 /* ============ HERO ============ */
 .hero { position: relative; padding: 138px 0 90px; overflow: hidden; }
@@ -132,7 +133,7 @@ img { max-width: 100%; display: block; }
 .media-badge {
   position: absolute; top: 16px; left: 16px; z-index: 2;
   background: rgba(20,20,20,.62); backdrop-filter: blur(8px); color: #fff;
-  font-size: 10.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   padding: 7px 12px; border-radius: 100px;
 }
 .hero-media-panel {
@@ -239,7 +240,7 @@ img { max-width: 100%; display: block; }
 .pack:hover { transform: translateY(-5px); box-shadow: 0 34px 64px -40px rgba(0,0,0,.3); }
 .pack-featured { background: var(--ink); border-color: var(--ink); color: #fff; }
 .pack-featured p { color: rgba(255,255,255,.6); }
-.pack-tag { position: absolute; top: 20px; right: 22px; background: var(--red); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px; }
+.pack-tag { position: absolute; top: 20px; right: 22px; background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px; }
 .pack-price { font-family: var(--font-display); font-weight: 400; font-size: 40px; color: var(--red); line-height: 1; }
 .pack h3 { font-family: var(--font-display); font-weight: 400; font-size: 24px; text-transform: uppercase; letter-spacing: .01em; margin: 14px 0 10px; }
 .pack > p { font-size: 14px; color: var(--ink-soft); margin-bottom: 22px; }
@@ -272,7 +273,7 @@ img { max-width: 100%; display: block; }
 .review-foot { display: flex; align-items: center; gap: 13px; padding-top: 20px; border-top: 1px solid var(--line); }
 .review-avatar { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 20px; }
 .review-who { font-family: var(--font-display); font-weight: 400; font-size: 17px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
-.review-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 5px; }
+.review-meta { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 6px; letter-spacing: .01em; }
 
 /* ============ BOOKING ============ */
 .booking-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 60px; align-items: center; }
@@ -302,13 +303,13 @@ img { max-width: 100%; display: block; }
 .foot .brand-name { color: #fff; }
 .foot .brand-sub { color: rgba(255,255,255,.4); }
 .foot-lead { max-width: 30ch; font-size: 14.5px; margin-top: 18px; }
-.foot-col h5 { font-family: var(--font-body); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 16px; color: var(--red); }
+.foot-col h5 { font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; color: var(--red); }
 .foot-col a, .foot-col p { display: block; font-size: 14.5px; color: rgba(255,255,255,.62); margin-bottom: 10px; transition: color .18s; }
 .foot-col a:hover { color: #fff; }
 .foot-line { display: flex; align-items: flex-start; gap: 11px; }
 .foot-line svg { flex: none; margin-top: 2px; color: var(--red); }
 .foot-line .foot-at { flex: none; width: 16px; text-align: center; color: var(--red); font-weight: 800; }
 .foot-line-indent { padding-left: 27px; }
-.foot-legal { border-top: 1px solid var(--dark-line); margin-top: 48px; padding-top: 26px; font-size: 12.5px; color: rgba(255,255,255,.4); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.foot-legal { border-top: 1px solid var(--dark-line); margin-top: 48px; padding-top: 26px; font-family: var(--font-mono); font-size: 11.5px; color: rgba(255,255,255,.4); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
