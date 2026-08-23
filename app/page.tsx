@@ -21,10 +21,10 @@ function goVroomly() {
   window.open(VROOMLY_URL, "_blank", "noopener,noreferrer");
 }
 
-/* Header logo (PNG on white) */
+/* Header logo (monogramme GDA, fond transparent) */
 function LogoImg() {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/logo.png" alt="Garage D'Aumetz" style={{ height: 60, width: "auto" }} />;
+  return <img src="/nav-logo.png" alt="Garage D'Aumetz" style={{ height: 44, width: "auto" }} />;
 }
 
 function LogoText() {
@@ -32,6 +32,39 @@ function LogoText() {
     <div className="brand">
       <div className="brand-name">GARAGE D<span className="r">&apos;</span>AUMETZ</div>
       <div className="brand-sub">Mécanique &amp; entretien · Aumetz 57</div>
+    </div>
+  );
+}
+
+/* Écran d'attente affiché à la première visite */
+function Splash() {
+  const reduce = useReducedMotion();
+  const [show, setShow] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+
+  useEffect(() => {
+    let seen = false;
+    try { seen = localStorage.getItem("gda_visited") === "1"; } catch {}
+    if (seen) return;
+    setShow(true);
+    try { localStorage.setItem("gda_visited", "1"); } catch {}
+    const t1 = setTimeout(() => setLeaving(true), reduce ? 500 : 1700);
+    const t2 = setTimeout(() => setShow(false), reduce ? 750 : 2300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [reduce]);
+
+  if (!show) return null;
+  return (
+    <div
+      className={`splash ${leaving ? "splash-out" : ""}`}
+      aria-hidden
+      onClick={() => { setLeaving(true); setTimeout(() => setShow(false), 550); }}
+    >
+      <div className="splash-inner">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/full-logo.png" alt="Garage D'Aumetz" className="splash-logo" />
+        <div className="splash-bar"><span /></div>
+      </div>
     </div>
   );
 }
@@ -155,6 +188,7 @@ export default function Home() {
 
   return (
     <>
+      <Splash />
       <motion.div className="scroll-progress" style={{ scaleX: progress }} aria-hidden />
 
       {/* HEADER */}
@@ -482,6 +516,10 @@ export default function Home() {
               <a href="#tarifs">Tarifs</a>
               <a href="#avis">Avis</a>
             </div>
+          </div>
+          <div className="foot-brand">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/full-logo-light.png" alt="Garage D'Aumetz" />
           </div>
           <div className="foot-legal">
             <span>© 2026 Garage D&apos;Aumetz — Aumetz (57710), Moselle.</span>
