@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { PRESTA_ICONS, IconCheck, IconStar } from "./icons";
 
 const VROOMLY_URL =
   "https://www.vroomly.com/garages/garage-daumetz-57710-scierie/";
@@ -29,15 +30,15 @@ function LogoText() {
 }
 
 const PRESTATIONS = [
-  { ic: "🛢️", t: "Vidange & entretien", d: "Huile, filtres et contrôle complet des niveaux.", p: "dès 89 €" },
-  { ic: "🛑", t: "Freinage", d: "Plaquettes, disques et purge du liquide de frein.", p: "dès 120 €" },
-  { ic: "⚙️", t: "Distribution", d: "Kit de distribution, pompe à eau, embrayage.", p: "dès 450 €" },
-  { ic: "🔧", t: "Suspension", d: "Amortisseurs, rotules, géométrie, parallélisme.", p: "dès 160 €" },
-  { ic: "🩺", t: "Diagnostic", d: "Lecture des défauts et recherche de panne.", p: "dès 55 €" },
-  { ic: "❄️", t: "Climatisation", d: "Recharge, étanchéité, filtre d'habitacle.", p: "dès 79 €" },
-  { ic: "🛞", t: "Pneumatiques", d: "Montage, équilibrage et permutation.", p: "dès 22 €/pneu" },
-  { ic: "🔋", t: "Batterie", d: "Batterie, alternateur, démarreur.", p: "dès 95 €" },
-];
+  { ic: "vidange", t: "Vidange & entretien", d: "Huile, filtres et contrôle complet des niveaux.", p: "dès 89 €" },
+  { ic: "frein", t: "Freinage", d: "Plaquettes, disques et purge du liquide de frein.", p: "dès 120 €" },
+  { ic: "distribution", t: "Distribution", d: "Kit de distribution, pompe à eau, embrayage.", p: "dès 450 €" },
+  { ic: "suspension", t: "Suspension", d: "Amortisseurs, rotules, géométrie, parallélisme.", p: "dès 160 €" },
+  { ic: "diagnostic", t: "Diagnostic", d: "Lecture des défauts et recherche de panne.", p: "dès 55 €" },
+  { ic: "clim", t: "Climatisation", d: "Recharge, étanchéité, filtre d'habitacle.", p: "dès 79 €" },
+  { ic: "pneu", t: "Pneumatiques", d: "Montage, équilibrage et permutation.", p: "dès 22 €/pneu" },
+  { ic: "batterie", t: "Batterie", d: "Batterie, alternateur, démarreur.", p: "dès 95 €" },
+] as const;
 
 const STEPS = [
   { n: "1", t: "Décrivez votre besoin", d: "Choisissez vos prestations : entretien, panne, pneus… en quelques clics." },
@@ -181,11 +182,13 @@ export default function Home() {
             <Reveal delay={0.1}><p>Toutes marques, pièces d&apos;origine ou équivalentes, tarifs de garage indépendant.</p></Reveal>
           </div>
           <div className="presta">
-            {PRESTATIONS.map((c, i) => (
+            {PRESTATIONS.map((c, i) => {
+              const Ic = PRESTA_ICONS[c.ic];
+              return (
               <Reveal key={c.t} delay={(i % 4) * 0.06}>
                 <div className="card" onClick={goVroomly} role="button" tabIndex={0}
                   onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && goVroomly()}>
-                  <div className="card-ic">{c.ic}</div>
+                  <div className="card-ic"><Ic /></div>
                   <h4>{c.t}</h4>
                   <p>{c.d}</p>
                   <div className="card-foot">
@@ -194,7 +197,8 @@ export default function Home() {
                   </div>
                 </div>
               </Reveal>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -216,7 +220,7 @@ export default function Home() {
             {WHY.map((w, i) => (
               <Reveal key={w.t} delay={i * 0.08}>
                 <div className="exp-item">
-                  <div className="exp-check">✓</div>
+                  <div className="exp-check"><IconCheck /></div>
                   <div><b>{w.t}</b><span>{w.d}</span></div>
                 </div>
               </Reveal>
@@ -237,7 +241,9 @@ export default function Home() {
               {/* Remplacez par une photo réelle d'intervention */}
               <div className="review-photo" />
               <div className="review-body">
-                <div className="review-stars">★★★★★</div>
+                <div className="review-stars">
+                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={19} height={19} />)}
+                </div>
                 <p className="review-quote">&laquo; Travail impeccable et devis respecté à l&apos;euro près. Accueil au top, on m&apos;a tout expliqué clairement. Je recommande sans hésiter. &raquo;</p>
                 <div className="review-who">Client vérifié</div>
                 <div className="review-meta">Entretien &amp; freinage · Avis Google</div>
