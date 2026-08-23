@@ -160,6 +160,109 @@ function StickyBar() {
   );
 }
 
+/* Carte « click-to-load » : l'iframe Google (donc les cookies) ne se charge
+   qu'au clic de l'utilisateur = consentement RGPD. Aucun cookie par défaut. */
+function LocationMap() {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="map-frame">
+      {loaded ? (
+        <iframe
+          src={SITE.mapsEmbed}
+          title="Localisation du Garage D'Aumetz à Aumetz (57710)"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : (
+        <button className="map-consent" onClick={() => { setLoaded(true); trackEvent("map_load"); }}>
+          <span className="map-grid" aria-hidden />
+          <span className="map-pin"><IconPin width={22} height={22} /></span>
+          <b>{SITE.street}</b>
+          <span className="map-city">{SITE.postalCode} {SITE.city} · Moselle</span>
+          <span className="map-cta">Afficher la carte</span>
+          <span className="map-note">Chargement de Google Maps au clic (aucun cookie avant)</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* Formulaire de rappel — capture de lead en direct (endpoint /api/contact). */
+function CallbackForm() {
+  const [state, setState] = useState<"idle" | "sending" | "ok" | "err" | "unconfigured">("idle");
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    if (fd.get("company")) return; // honeypot
+    setState("sending");
+    trackEvent("callback_submit", { need: String(fd.get("need") || "") });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fd.get("name"), phone: fd.get("phone"),
+          need: fd.get("need"), message: fd.get("message"), company: fd.get("company"),
+        }),
+      });
+      if (res.ok) { setState("ok"); form.reset(); }
+      else if (res.status === 503) setState("unconfigured");
+      else setState("err");
+    } catch { setState("err"); }
+  }
+
+  if (state === "ok") {
+    return (
+      <div className="form-success" role="status">
+        <span className="form-success-ic"><IconCheck width={24} height={24} /></span>
+        <b>Merci, c&apos;est noté !</b>
+        <span>On vous rappelle au plus vite. Pour une urgence, appelez le {SITE.phone}.</span>
+      </div>
+    );
+  }
+
+  return (
+    <form className="callback" onSubmit={onSubmit} noValidate>
+      <div className="callback-row">
+        <label className="field">
+          <span>Nom *</span>
+          <input name="name" type="text" required autoComplete="name" placeholder="Votre nom" />
+        </label>
+        <label className="field">
+          <span>Téléphone *</span>
+          <input name="phone" type="tel" required autoComplete="tel" placeholder="06 12 34 56 78" />
+        </label>
+      </div>
+      <label className="field">
+        <span>Besoin</span>
+        <select name="need" defaultValue="">
+          <option value="" disabled>Choisir…</option>
+          <option>Entretien / Vidange</option>
+          <option>Freinage</option>
+          <option>Distribution</option>
+          <option>Diagnostic / Panne</option>
+          <option>Pneumatiques</option>
+          <option>Climatisation</option>
+          <option>Autre</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>Message (optionnel)</span>
+        <textarea name="message" rows={2} placeholder="Marque, modèle, précisions…" />
+      </label>
+      <input type="text" name="company" tabIndex={-1} autoComplete="off" className="hp" aria-hidden />
+      <button className="btn btn-red callback-submit" type="submit" disabled={state === "sending"}>
+        {state === "sending" ? "Envoi…" : <>Être rappelé <span className="btn-arrow">→</span></>}
+      </button>
+      {state === "err" && <p className="form-msg form-err">Une erreur est survenue. Appelez-nous au {SITE.phone}.</p>}
+      {state === "unconfigured" && <p className="form-msg form-err">Formulaire bientôt actif. En attendant, appelez le {SITE.phone} ou faites votre devis en ligne.</p>}
+      <p className="callback-legal">Vos coordonnées servent uniquement à vous recontacter. Aucun spam.</p>
+    </form>
+  );
+}
+
 const PRESTATIONS = [
   { ic: "vidange", t: "Vidange & entretien", d: "Huile, filtres et contrôle complet des niveaux.", p: "dès 89 €" },
   { ic: "frein", t: "Freinage", d: "Plaquettes, disques et purge du liquide de frein.", p: "dès 120 €" },
@@ -501,32 +604,31 @@ export default function Home() {
         <div className="wrap booking-grid">
           <Reveal className="booking-copy">
             <div className="eyebrow">Rendez-vous</div>
-            <h2 className="display">Réservez en ligne en 2 minutes</h2>
+            <h2 className="display">Réservez, ou on vous rappelle</h2>
             <p>
-              Décrivez votre besoin, identifiez votre voiture avec la plaque, obtenez un prix clair
-              et choisissez votre créneau. Une question ? Appelez-nous, on répond.
+              Laissez votre numéro : on vous rappelle rapidement pour caler l&apos;intervention.
+              Vous préférez tout faire en ligne, tout de suite&nbsp;? Obtenez votre devis en 2 minutes.
             </p>
-            <div className="booking-cta">
-              <button className="btn btn-red" onClick={() => goVroomly("contact")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
-              <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("contact")}>
-                <IconPhone width={17} height={17} /> {SITE.phone}
-              </a>
-            </div>
-            <div className="booking-info">
-              <div className="binfo"><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Adresse</b><span>{SITE.street}, {SITE.postalCode} {SITE.city}</span></div></div>
-              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires <OpenStatus className="status-inline" /></b><span>Lun–Ven 8h30-12h / 14h-18h · Sam 9h-12h</span></div></div>
-              <div className="binfo"><span className="binfo-ic"><IconShield width={17} height={17} /></span><div><b>Garantie</b><span>Pièces &amp; main d&apos;œuvre garanties 1 an</span></div></div>
+            <CallbackForm />
+            <div className="booking-alt">
+              <span className="booking-alt-label">Ou immédiatement</span>
+              <div className="booking-cta">
+                <button className="btn btn-dark" onClick={() => goVroomly("contact")}>Devis en ligne <span className="btn-arrow">→</span></button>
+                <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("contact")}>
+                  <IconPhone width={17} height={17} /> {SITE.phone}
+                </a>
+              </div>
             </div>
           </Reveal>
           <Reveal className="booking-media">
-            <span className="accent-block" aria-hidden />
-            <div className="booking-map-frame">
-              <iframe
-                src={SITE.mapsEmbed}
-                title="Localisation du Garage D'Aumetz à Aumetz (57710)"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <LocationMap />
+            <div className="booking-info">
+              <div className="binfo"><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Adresse</b><span>{SITE.street}, {SITE.postalCode} {SITE.city}</span></div></div>
+              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires <OpenStatus className="status-inline" /></b><span>Lun–Ven 8h30-12h / 14h-18h · Sam 9h-12h</span></div></div>
+              <a className="binfo binfo-link" href={SITE.mapsDir} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("directions_click")}>
+                <span className="binfo-ic"><IconPin width={17} height={17} /></span>
+                <div><b>Itinéraire</b><span>Ouvrir dans Google Maps →</span></div>
+              </a>
             </div>
           </Reveal>
         </div>

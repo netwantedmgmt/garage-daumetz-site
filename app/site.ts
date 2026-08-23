@@ -21,6 +21,8 @@ export const SITE = {
     "https://www.google.com/maps/search/?api=1&query=Garage%20D'Aumetz%20Aumetz%2057710",
   mapsEmbed:
     "https://www.google.com/maps?q=6%20rue%20de%20l'ancienne%20scierie%2057710%20Aumetz&output=embed",
+  mapsDir:
+    "https://www.google.com/maps/dir/?api=1&destination=6%20rue%20de%20l'ancienne%20scierie%2057710%20Aumetz",
 } as const;
 
 /* Horaires : minutes depuis minuit, index jour 0=dimanche … 6=samedi */
