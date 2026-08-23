@@ -34,6 +34,43 @@ export const HOURS: Record<number, [number, number][]> = {
   0: [],
 };
 
+/* Note Google réelle (fiche Google Business — à actualiser périodiquement) */
+export const RATING = { value: 5, count: 29 } as const;
+
+/* Avis Google réels (extraits de la fiche, légèrement nettoyés des troncatures). */
+export const REVIEWS = [
+  {
+    name: "Issam Hadj Hamou",
+    tag: "Embrayage · Dépannage",
+    text: "Merci de nous avoir sauvé nos vacances. Embrayage cassé 2 jours avant le départ, ils nous ont pris directement. Le lendemain la pièce était déjà là et le soir la voiture était prête à rouler. Merci pour votre professionnalisme.",
+  },
+  {
+    name: "Thomas Masson",
+    tag: "Pneumatiques · Dépannage",
+    text: "Très bon accueil et un très grand merci pour le dépannage suite au pneu totalement déchiré que l'on m'a remplacé le jour même.",
+  },
+  {
+    name: "Bilal Haboudane",
+    tag: "Vidange & freinage",
+    text: "Vidange complète, disques et plaquettes à l'avant sur ma Golf 7. Prix abordable et équipe au top !",
+  },
+  {
+    name: "Sebastien Pierrat",
+    tag: "Dépannage express",
+    text: "Super garage, dépannage express sans rdv : juste téléphoné et ils m'ont accepté de suite. Très serviable, je recommande vraiment, merci pour votre réactivité.",
+  },
+  {
+    name: "Christine Descharles",
+    tag: "Réparation",
+    text: "Ma voiture leur a donné du fil à retordre, ils se sont donné énormément de mal pour la réparer, que je puisse aller travailler. Super gentils, ils font vraiment leur max. Je reviendrai, c'est sûr.",
+  },
+  {
+    name: "Hugo Plé",
+    tag: "Parallélisme",
+    text: "Parallélisme nickel, nettoyage impeccable et tarif plus que raisonnable.",
+  },
+] as const;
+
 export const FAQ = [
   {
     q: "Intervenez-vous sur toutes les marques ?",

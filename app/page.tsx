@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
-import { SITE, HOURS, FAQ } from "./site";
+import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -197,13 +197,6 @@ const WHY = [
   { t: "Pièces de qualité", d: "Pièces d'origine ou équivalentes, jamais du bas de gamme." },
 ];
 
-/* Témoignages — attribution générique « vérifié ». ⚠️ À remplacer par de vrais avis Google (API Places). */
-const REVIEWS = [
-  { q: "Travail impeccable et devis respecté à l'euro près. Accueil au top, on m'a tout expliqué clairement. Je recommande sans hésiter.", who: "Client vérifié", meta: "Entretien & freinage" },
-  { q: "Panne prise en charge le jour même, diagnostic clair et prix honnête. Ça change des grandes enseignes, on se sent en confiance.", who: "Client vérifié", meta: "Diagnostic & réparation" },
-  { q: "Vidange et distribution faites nickel, rendez-vous facile à réserver en ligne. Un garage indépendant sérieux comme on en trouve peu.", who: "Client vérifié", meta: "Vidange & distribution" },
-] as const;
-
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -271,10 +264,12 @@ export default function Home() {
             </ul>
             <div className="hero-trust">
               <OpenStatus />
-              <span className="hero-trust-stars" aria-hidden>
-                {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={15} height={15} />)}
-              </span>
-              <span><b>Avis vérifiés</b> · certifié Vroomly</span>
+              <a className="hero-rating" href={SITE.googleReviews} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("google_reviews_click", { src: "hero" })}>
+                <span className="hero-trust-stars" aria-hidden>
+                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={15} height={15} />)}
+                </span>
+                <span><b>{RATING.value.toLocaleString("fr-FR", { minimumFractionDigits: 1 })}/5</b> · {RATING.count} avis Google</span>
+              </a>
             </div>
           </div>
 
@@ -446,31 +441,32 @@ export default function Home() {
         <div className="wrap">
           <div className="section-head center">
             <Reveal><div className="eyebrow center">Avis clients</div></Reveal>
-            <Reveal delay={0.05}><h2 className="display">Ils nous ont fait confiance</h2></Reveal>
+            <Reveal delay={0.05}><h2 className="display">{RATING.value}/5 sur {RATING.count} avis Google</h2></Reveal>
             <Reveal delay={0.1}>
-              <a className="rating-badge" href={SITE.googleReviews} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("google_reviews_click")}>
+              <a className="rating-badge" href={SITE.googleReviews} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("google_reviews_click", { src: "badge" })}>
                 <IconGoogle />
+                <span className="rating-score tnum">{RATING.value.toLocaleString("fr-FR", { minimumFractionDigits: 1 })}</span>
                 <span className="rating-stars" aria-hidden>
-                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={17} height={17} />)}
+                  {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={16} height={16} />)}
                 </span>
-                <span className="rating-label">Voir nos avis sur Google</span>
+                <span className="rating-label">{RATING.count} avis · voir sur Google</span>
               </a>
             </Reveal>
           </div>
           <div className="review-grid">
             {REVIEWS.map((r, i) => (
-              <Reveal key={r.meta} delay={i * 0.08}>
+              <Reveal key={r.name} delay={(i % 3) * 0.08}>
                 <div className="review-card">
                   <span className="review-quote-ic" aria-hidden><IconQuote /></span>
                   <div className="review-stars" aria-hidden>
                     {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={16} height={16} />)}
                   </div>
-                  <p className="review-quote">{r.q}</p>
+                  <p className="review-quote">{r.text}</p>
                   <div className="review-foot">
-                    <div className="review-avatar" aria-hidden>{r.who.charAt(0)}</div>
+                    <div className="review-avatar" aria-hidden>{r.name.charAt(0)}</div>
                     <div>
-                      <div className="review-who">{r.who}</div>
-                      <div className="review-meta">{r.meta}</div>
+                      <div className="review-who">{r.name}</div>
+                      <div className="review-meta">{r.tag} · Avis Google</div>
                     </div>
                   </div>
                 </div>

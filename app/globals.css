@@ -259,7 +259,13 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--line-strong); box-shadow: 0 14px 34px -22px rgba(0,0,0,.28);
 }
 .rating-stars { display: inline-flex; gap: 2px; color: var(--red); }
+.rating-score { font-family: var(--font-display); font-weight: 400; font-size: 22px; color: var(--red); line-height: 1; }
 .rating-label { font-size: 13.5px; font-weight: 700; color: var(--ink-soft); }
+.rating-badge:hover { border-color: var(--red); }
+/* note Google dans le hero */
+.hero-rating { display: inline-flex; align-items: center; gap: 9px; color: var(--ink-soft); transition: color .18s; }
+.hero-rating:hover { color: var(--ink); }
+.hero-rating b { color: var(--ink); font-weight: 800; }
 .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media (max-width: 900px) { .review-grid { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; } }
 .review-card {

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { SITE, FAQ } from "./site";
+import { SITE, FAQ, RATING, REVIEWS } from "./site";
 import "./globals.css";
 
 const anton = Anton({ variable: "--font-anton", subsets: ["latin"], weight: ["400"] });
@@ -60,6 +60,19 @@ const jsonLd = {
       },
       geo: { "@type": "GeoCoordinates", latitude: SITE.lat, longitude: SITE.lng },
       areaServed: [SITE.city, "Moselle", "Audun-le-Tiche", "Boulange", "Fontoy"],
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: RATING.value,
+        reviewCount: RATING.count,
+        bestRating: 5,
+        worstRating: 1,
+      },
+      review: REVIEWS.map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.name },
+        reviewRating: { "@type": "Rating", ratingValue: 5, bestRating: 5 },
+        reviewBody: r.text,
+      })),
       openingHoursSpecification: [
         { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "08:30", closes: "12:00" },
         { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "14:00", closes: "18:00" },
