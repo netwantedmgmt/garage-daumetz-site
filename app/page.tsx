@@ -31,7 +31,7 @@ function onCall(src = "unknown") {
 
 /* Header logo (monogramme GDA, fond transparent) */
 function LogoImg() {
-  return <Image src="/nav-logo.png" alt="Garage D'Aumetz" width={99} height={44} priority className="nav-logo" />;
+  return <Image src="/nav-logo-light.png" alt="Garage D'Aumetz" width={99} height={44} priority className="nav-logo" />;
 }
 
 function LogoText() {
@@ -344,6 +344,7 @@ export default function Home() {
 
       {/* HERO */}
       <section className="hero" id="top">
+        <div className="grid-bg" aria-hidden />
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <div className="eyebrow">Garage indépendant · Aumetz (57)</div>
