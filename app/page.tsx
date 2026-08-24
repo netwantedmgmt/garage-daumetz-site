@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
+import { FlipWords, InfiniteMovingCards, HoverGrid } from "./aceternity";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -13,7 +14,6 @@ import {
   IconClock,
   IconPin,
   IconPhone,
-  IconQuote,
 } from "./icons";
 
 function trackEvent(name: string, props?: Record<string, string>) {
@@ -348,7 +348,11 @@ export default function Home() {
           <div className="hero-copy">
             <div className="eyebrow">Garage indépendant · Aumetz (57)</div>
             <h1 className="display">
-              Votre voiture entre de <span className="r">bonnes mains</span>
+              Votre voiture<br />
+              <FlipWords
+                className="r"
+                words={["entre de bonnes mains", "réparée sans surprise", "prête plus vite"]}
+              />
             </h1>
             <p className="hero-sub">
               Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an.
@@ -453,30 +457,31 @@ export default function Home() {
               <button className="btn btn-outline" onClick={() => goVroomly("prestations_head")}>Voir tout <span className="btn-arrow">→</span></button>
             </Reveal>
           </div>
-          <div className="presta">
-            {PRESTATIONS.map((c, i) => {
+          <HoverGrid
+            items={PRESTATIONS}
+            className="presta"
+            render={(c) => {
               const Ic = PRESTA_ICONS[c.ic];
               return (
-                <Reveal key={c.t} delay={(i % 4) * 0.06}>
-                  <div className="card" onClick={() => goVroomly("presta_card")} role="button" tabIndex={0}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && goVroomly("presta_card")}>
-                    <div className="card-ic"><Ic /></div>
-                    <h4>{c.t}</h4>
-                    <p>{c.d}</p>
-                    <div className="card-foot">
-                      <span className="card-from tnum">{c.p}</span>
-                      <span className="card-go">Réserver →</span>
-                    </div>
+                <div className="card" onClick={() => goVroomly("presta_card")} role="button" tabIndex={0}
+                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && goVroomly("presta_card")}>
+                  <div className="card-ic"><Ic /></div>
+                  <h4>{c.t}</h4>
+                  <p>{c.d}</p>
+                  <div className="card-foot">
+                    <span className="card-from tnum">{c.p}</span>
+                    <span className="card-go">Réserver →</span>
                   </div>
-                </Reveal>
+                </div>
               );
-            })}
-          </div>
+            }}
+          />
         </div>
       </section>
 
       {/* EXPERTISE */}
       <section className="section expertise">
+        <div className="spotlight" aria-hidden />
         <div className="wrap exp-grid">
           <Reveal className="exp-media">
             <span className="accent-block" aria-hidden />
@@ -556,26 +561,7 @@ export default function Home() {
               </a>
             </Reveal>
           </div>
-          <div className="review-grid">
-            {REVIEWS.map((r, i) => (
-              <Reveal key={r.name} delay={(i % 3) * 0.08}>
-                <div className="review-card">
-                  <span className="review-quote-ic" aria-hidden><IconQuote /></span>
-                  <div className="review-stars" aria-hidden>
-                    {[0, 1, 2, 3, 4].map((s) => <IconStar key={s} width={16} height={16} />)}
-                  </div>
-                  <p className="review-quote">{r.text}</p>
-                  <div className="review-foot">
-                    <div className="review-avatar" aria-hidden>{r.name.charAt(0)}</div>
-                    <div>
-                      <div className="review-who">{r.name}</div>
-                      <div className="review-meta">{r.tag} · Avis Google</div>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <InfiniteMovingCards items={REVIEWS} />
         </div>
       </section>
 

@@ -427,6 +427,41 @@ html.js .reveal.in { opacity: 1; transform: none; }
 .binfo-link:hover { transform: translateX(3px); }
 .binfo-link:hover b { color: var(--red); }
 
+/* ============ ACETERNITY (adaptés charte) ============ */
+/* Flip Words (titre hero) — glissement CSS, opacité toujours 1 */
+.flip-wrap { display: inline-flex; position: relative; vertical-align: top; }
+.flip-word { display: inline-block; white-space: nowrap; }
+.flip-anim { animation: flipIn .45s cubic-bezier(.2,.7,.3,1); }
+@keyframes flipIn { from { transform: translateY(.5em); } to { transform: translateY(0); } }
+
+/* Infinite Moving Cards (avis) */
+.imc { position: relative; max-width: 100%; overflow: hidden; padding: 10px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.imc-track { display: flex; gap: 20px; width: max-content; list-style: none; animation: scroll linear infinite; will-change: transform; }
+.imc:hover .imc-track { animation-play-state: paused; }
+.imc-card { flex: 0 0 auto; width: 360px; max-width: 84vw; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 28px 24px; box-shadow: 0 24px 50px -40px rgba(0,0,0,.3); }
+.imc-stars { color: var(--red); letter-spacing: 3px; font-size: 15px; margin-bottom: 14px; }
+.imc-text { font-size: 14.5px; line-height: 1.6; color: var(--ink); margin-bottom: 18px; min-height: 88px; }
+.imc-foot { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line); }
+.imc-avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 19px; }
+.imc-name { display: block; font-family: var(--font-display); font-weight: 400; font-size: 16px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
+.imc-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); }
+@media (max-width: 520px) { .imc-card { width: 300px; } }
+
+/* Card Hover Effect (surbrillance partagée) */
+.hg-item { position: relative; }
+.hg-item .card { position: relative; z-index: 1; }
+.hg-halo { position: absolute; inset: -6px; z-index: 0; border-radius: 16px; background: rgba(225,47,47,.07); border: 1px solid rgba(225,47,47,.28); box-shadow: 0 30px 64px -30px rgba(225,47,47,.45); pointer-events: none; opacity: 0; transition: opacity .22s ease; }
+.hg-item:hover .hg-halo { opacity: 1; }
+
+/* Spotlight (bandeau sombre) */
+.expertise .spotlight { position: absolute; top: -32%; left: -12%; width: 72%; height: 165%; z-index: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255,255,255,.11), transparent 70%);
+  transform: rotate(-16deg); filter: blur(22px); animation: spot 5.5s cubic-bezier(.2,.7,.3,1) both; }
+.expertise .exp-grid { position: relative; z-index: 1; }
+@keyframes spot { from { opacity: 0; transform: rotate(-16deg) translateX(-40px); } to { opacity: 1; transform: rotate(-16deg) translateX(0); } }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   html.js .reveal { opacity: 1 !important; transform: none !important; }
