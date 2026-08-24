@@ -19,6 +19,7 @@
   --font-display: var(--font-anton), Impact, system-ui, sans-serif;
   --font-body: var(--font-grotesk), system-ui, sans-serif;
   --font-mono: var(--font-mono-src), ui-monospace, "SFMono-Regular", monospace;
+  --font-accent: var(--font-fraunces), Georgia, "Times New Roman", serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,7 +48,17 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase; letter-spacing: 0.01em; line-height: 0.96;
   text-wrap: balance;
 }
-.display .r { color: var(--red); }
+/* Accent : au changement de couleur (rouge), on change aussi de police —
+   Fraunces italique, bas-de-casse, en contraste avec l'Anton condensé. */
+.display .r {
+  color: var(--red);
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  font-size: 0.94em;
+}
 .eyebrow {
   display: inline-flex; align-items: center; gap: 12px;
   font-family: var(--font-mono); font-size: 12px; font-weight: 700;
@@ -110,12 +121,14 @@ img { max-width: 100%; display: block; }
 /* brand (footer) */
 .brand-name { font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: .02em; line-height: 1; text-transform: uppercase; }
 .brand-name .r { color: var(--red); }
-.brand-sub { font-family: var(--font-mono); font-size: 10px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-top: 6px; }
+.brand-sub { font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-top: 6px; }
 
 /* ============ HERO ============ */
 .hero { position: relative; padding: 118px 0 84px; overflow: hidden; }
-.hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 56px; align-items: start; }
-.hero-copy { padding-top: 22px; }
+/* minmax(0,…) : la colonne texte ne peut PAS s'élargir selon son contenu →
+   la colonne image reste stable même quand le mot animé change. */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); gap: 56px; align-items: start; }
+.hero-copy { padding-top: 22px; min-width: 0; }
 @media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } .hero-copy { padding-top: 0; } }
 .hero h1 { font-size: clamp(46px, 6.6vw, 88px); }
 .hero-sub { margin-top: 24px; font-size: clamp(16px, 1.4vw, 18px); color: var(--ink-soft); max-width: 46ch; }
@@ -134,7 +147,7 @@ img { max-width: 100%; display: block; }
 .media-badge {
   position: absolute; top: 16px; left: 16px; z-index: 2;
   background: rgba(20,20,20,.62); backdrop-filter: blur(8px); color: #fff;
-  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   padding: 7px 12px; border-radius: 100px;
 }
 .hero-media-panel {
@@ -151,7 +164,7 @@ img { max-width: 100%; display: block; }
 .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface-2); padding: 18px 0; overflow: hidden; }
 .marquee-track { display: flex; gap: 54px; white-space: nowrap; width: max-content; animation: scroll 30s linear infinite; }
 .marquee-item { font-family: var(--font-display); font-weight: 400; font-size: 17px; text-transform: uppercase; letter-spacing: .02em; color: var(--ink); display: inline-flex; align-items: center; gap: 54px; }
-.marquee-item::before { content: "◆"; color: var(--red); font-size: 10px; }
+.marquee-item::before { content: "◆"; color: var(--red); font-size: 11px; }
 @keyframes scroll { to { transform: translateX(-50%); } }
 
 /* ============ SECTIONS ============ */
@@ -199,7 +212,7 @@ img { max-width: 100%; display: block; }
 .card-ic { width: 52px; height: 52px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink); display: grid; place-items: center; margin-bottom: 20px; transition: background .25s, color .25s; }
 .card:hover .card-ic { background: var(--red); color: #fff; }
 .card h4 { font-family: var(--font-display); font-weight: 400; font-size: 19px; text-transform: uppercase; letter-spacing: .01em; margin-bottom: 8px; }
-.card p { font-size: 13px; color: var(--ink-soft); min-height: 34px; }
+.card p { font-size: 13.5px; color: var(--ink-soft); min-height: 34px; }
 .card-foot { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; }
 .card-from { font-family: var(--font-display); font-weight: 400; font-size: 20px; color: var(--red); }
 .card-go { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); opacity: 0; transform: translateX(-6px); transition: all .25s; }
@@ -241,7 +254,7 @@ img { max-width: 100%; display: block; }
 .pack:hover { transform: translateY(-5px); box-shadow: 0 34px 64px -40px rgba(0,0,0,.3); }
 .pack-featured { background: var(--ink); border-color: var(--ink); color: #fff; }
 .pack-featured p { color: rgba(255,255,255,.6); }
-.pack-tag { position: absolute; top: 20px; right: 22px; background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px; }
+.pack-tag { position: absolute; top: 20px; right: 22px; background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px; }
 .pack-price { font-family: var(--font-display); font-weight: 400; font-size: 40px; color: var(--red); line-height: 1; }
 .pack h3 { font-family: var(--font-display); font-weight: 400; font-size: 24px; text-transform: uppercase; letter-spacing: .01em; margin: 14px 0 10px; }
 .pack > p { font-size: 14px; color: var(--ink-soft); margin-bottom: 22px; }
@@ -280,7 +293,7 @@ img { max-width: 100%; display: block; }
 .review-foot { display: flex; align-items: center; gap: 13px; padding-top: 20px; border-top: 1px solid var(--line); }
 .review-avatar { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 20px; }
 .review-who { font-family: var(--font-display); font-weight: 400; font-size: 17px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
-.review-meta { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 6px; letter-spacing: .01em; }
+.review-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); margin-top: 6px; letter-spacing: .01em; }
 
 /* ============ BOOKING ============ */
 .booking-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 60px; align-items: center; }
@@ -319,7 +332,7 @@ img { max-width: 100%; display: block; }
 .foot-line-indent { padding-left: 27px; }
 .foot-brand { display: flex; justify-content: center; margin-top: 52px; padding-top: 44px; border-top: 1px solid var(--dark-line); }
 .foot-brand img { height: 60px; width: auto; }
-.foot-legal { margin-top: 26px; font-family: var(--font-mono); font-size: 11.5px; color: rgba(255,255,255,.4); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.foot-legal { margin-top: 26px; font-family: var(--font-mono); font-size: 12.5px; color: rgba(255,255,255,.4); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
 
 /* ============ SPLASH (première visite) ============ */
 .splash {
@@ -339,7 +352,7 @@ html.js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .
 html.js .reveal.in { opacity: 1; transform: none; }
 
 /* ============ STATUT OUVERT/FERMÉ ============ */
-.status { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; letter-spacing: .01em; color: var(--ink-soft); }
+.status { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: .01em; color: var(--ink-soft); }
 .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); }
 .status-open i { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
 .status-inline { margin-left: 8px; font-weight: 700; }
@@ -401,19 +414,19 @@ html.js .reveal.in { opacity: 1; transform: none; }
 .map-city { position: relative; font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .map-cta { position: relative; margin-top: 14px; font-weight: 800; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--ink); padding: 10px 18px; border-radius: 100px; transition: background .2s; }
 .map-consent:hover .map-cta { background: var(--red); }
-.map-note { position: relative; margin-top: 9px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); }
+.map-note { position: relative; margin-top: 9px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
 
 .callback { margin-top: 26px; display: grid; gap: 14px; }
 .callback-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 520px) { .callback-row { grid-template-columns: 1fr; } }
 .field { display: grid; gap: 7px; }
-.field > span { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
-.field input, .field select, .field textarea { font-family: var(--font-body); font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 12px; padding: 13px 15px; width: 100%; transition: border-color .18s, box-shadow .18s; }
+.field > span { font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+.field input, .field select, .field textarea { font-family: var(--font-body); font-size: 16px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 12px; padding: 13px 15px; width: 100%; transition: border-color .18s, box-shadow .18s; }
 .field textarea { resize: vertical; min-height: 54px; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 4px rgba(225,47,47,.12); }
 .hp { position: absolute !important; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .callback-submit { width: 100%; justify-content: center; margin-top: 4px; }
-.callback-legal { font-size: 11.5px; color: var(--ink-faint); }
+.callback-legal { font-size: 12.5px; color: var(--ink-faint); }
 .form-msg { font-size: 13px; margin-top: 2px; }
 .form-err { color: var(--red); font-weight: 600; }
 .form-success { display: grid; gap: 8px; justify-items: start; padding: 30px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); margin-top: 26px; }
@@ -422,7 +435,7 @@ html.js .reveal.in { opacity: 1; transform: none; }
 .form-success span { color: var(--ink-soft); font-size: 14.5px; }
 
 .booking-alt { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
-.booking-alt-label { display: block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
+.booking-alt-label { display: block; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
 .binfo-link { text-decoration: none; transition: transform .15s; }
 .binfo-link:hover { transform: translateX(3px); }
 .binfo-link:hover b { color: var(--red); }
@@ -446,7 +459,7 @@ html.js .reveal.in { opacity: 1; transform: none; }
 .imc-foot { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line); }
 .imc-avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 19px; }
 .imc-name { display: block; font-family: var(--font-display); font-weight: 400; font-size: 16px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
-.imc-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); }
+.imc-tag { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); }
 @media (max-width: 520px) { .imc-card { width: 300px; } }
 
 /* Card Hover Effect (surbrillance partagée) */

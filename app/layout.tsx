@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
+import { Anton, Space_Grotesk, Space_Mono, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE, FAQ, RATING, REVIEWS } from "./site";
@@ -8,6 +8,7 @@ import "./globals.css";
 const anton = Anton({ variable: "--font-anton", subsets: ["latin"], weight: ["400"] });
 const grotesk = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const mono = Space_Mono({ variable: "--font-mono-src", subsets: ["latin"], weight: ["400", "700"] });
+const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["italic"], weight: ["400", "500", "600"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -93,7 +94,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${anton.variable} ${grotesk.variable} ${mono.variable} antialiased`}>
+    <html lang="fr" className={`${anton.variable} ${grotesk.variable} ${mono.variable} ${fraunces.variable} antialiased`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         {children}

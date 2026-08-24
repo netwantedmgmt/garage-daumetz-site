@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
-import { FlipWords, InfiniteMovingCards, HoverGrid } from "./aceternity";
+import { InfiniteMovingCards, HoverGrid } from "./aceternity";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -348,11 +348,7 @@ export default function Home() {
           <div className="hero-copy">
             <div className="eyebrow">Garage indépendant · Aumetz (57)</div>
             <h1 className="display">
-              Votre voiture<br />
-              <FlipWords
-                className="r"
-                words={["entre de bonnes mains", "réparée sans surprise", "prête plus vite"]}
-              />
+              Votre voiture entre de <span className="r">bonnes mains</span>
             </h1>
             <p className="hero-sub">
               Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an.
@@ -549,7 +545,7 @@ export default function Home() {
         <div className="wrap">
           <div className="section-head center">
             <Reveal><div className="eyebrow center">Avis clients</div></Reveal>
-            <Reveal delay={0.05}><h2 className="display">{RATING.value}/5 sur {RATING.count} avis Google</h2></Reveal>
+            <Reveal delay={0.05}><h2 className="display"><span className="r">{RATING.value}/5</span> sur {RATING.count} avis Google</h2></Reveal>
             <Reveal delay={0.1}>
               <a className="rating-badge" href={SITE.googleReviews} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("google_reviews_click", { src: "badge" })}>
                 <IconGoogle />
