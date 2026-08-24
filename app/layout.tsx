@@ -1,20 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Space_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE, FAQ, RATING, REVIEWS } from "./site";
 import "./globals.css";
 
-const clash = localFont({
-  variable: "--font-clash",
-  display: "swap",
-  src: [
-    { path: "./fonts/clash-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/clash-600.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/clash-700.woff2", weight: "700", style: "normal" },
-  ],
-});
 const general = localFont({
   variable: "--font-general",
   display: "swap",
@@ -22,9 +12,9 @@ const general = localFont({
     { path: "./fonts/gs-400.woff2", weight: "400", style: "normal" },
     { path: "./fonts/gs-500.woff2", weight: "500", style: "normal" },
     { path: "./fonts/gs-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/gs-700.woff2", weight: "700", style: "normal" },
   ],
 });
-const mono = Space_Mono({ variable: "--font-mono-src", subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -110,7 +100,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${clash.variable} ${general.variable} ${mono.variable} antialiased`}>
+    <html lang="fr" className={`${general.variable} antialiased`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         {children}
