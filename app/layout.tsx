@@ -9,10 +9,10 @@ const general = localFont({
   variable: "--font-general",
   display: "swap",
   src: [
-    { path: "./fonts/gs-400.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/gs-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/gs-600.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/gs-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/sat-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/sat-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/sat-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/sat-900.woff2", weight: "900", style: "normal" },
   ],
 });
 

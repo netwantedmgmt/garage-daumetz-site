@@ -304,7 +304,6 @@ export default function Home() {
           <div className="hero-scrim" aria-hidden />
         </div>
         <div className="wrap hero-inner">
-          <div className="eyebrow eyebrow-bar">Garage indépendant · Aumetz (57)</div>
           <h1 className="display hero-title">
             Votre voiture entre de<br /><span className="r">bonnes mains</span>
           </h1>
@@ -318,6 +317,7 @@ export default function Home() {
             <span className="hero-rating-inline"><span className="stars-inline" aria-hidden>{[0,1,2,3,4].map((s) => <IconStar key={s} width={14} height={14} />)}</span><b>5,0</b> · 29 avis Google</span>
           </div>
         </div>
+        <div className="hero-progress" aria-hidden><div className="wrap"><div className="hero-progress-bar" /></div></div>
       </section>
 
       {/* STATS BAR */}
