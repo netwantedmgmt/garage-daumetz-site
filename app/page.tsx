@@ -104,8 +104,8 @@ function Splash() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setShow(true);
     try { localStorage.setItem("gda_visited", "1"); } catch {}
-    const t1 = setTimeout(() => setLeaving(true), reduce ? 300 : 900);
-    const t2 = setTimeout(() => setShow(false), reduce ? 500 : 1300);
+    const t1 = setTimeout(() => setLeaving(true), reduce ? 400 : 2600);
+    const t2 = setTimeout(() => setShow(false), reduce ? 650 : 3100);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
   if (!show) return null;
