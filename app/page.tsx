@@ -5,6 +5,7 @@ import Image from "next/image";
 import { track } from "@vercel/analytics";
 import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
 import { InfiniteMovingCards } from "./aceternity";
+import { matchQuote, FREQUENT_SEARCHES, type QuoteResult } from "./quote-data";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -14,6 +15,10 @@ import {
   IconClock,
   IconPin,
   IconPhone,
+  IconSearch,
+  IconInstagram,
+  IconX,
+  IconVroomly,
 } from "./icons";
 
 function trackEvent(name: string, props?: Record<string, string>) {
@@ -193,6 +198,98 @@ function LocationMap() {
   );
 }
 
+/* ---------- Devis instantané (estimation par correspondance mots-clés) ---------- */
+function QuoteEstimator() {
+  const [problem, setProblem] = useState("");
+  const [brand, setBrand] = useState("");
+  const [year, setYear] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<QuoteResult | null>(null);
+
+  function runEstimate(text?: string) {
+    const q = (text ?? problem).trim();
+    if (!q) return;
+    if (text !== undefined) setProblem(text);
+    const yearNum = year ? parseInt(year, 10) : undefined;
+    const r = matchQuote(q, yearNum && !Number.isNaN(yearNum) ? yearNum : undefined);
+    setResult(r);
+    setSubmitted(true);
+    trackEvent("quote_estimate", { matched: r ? r.category.id : "none" });
+  }
+
+  function onSubmit(e: React.FormEvent) { e.preventDefault(); runEstimate(); }
+  function onChip(query: string, label: string) { trackEvent("quote_chip_click", { label }); runEstimate(query); }
+
+  return (
+    <section className="section quote" id="devis-instantane">
+      <div className="wrap">
+        <div className="section-head center">
+          <Reveal><div className="eyebrow eyebrow-bar center">Devis instantané</div></Reveal>
+          <Reveal delay={0.05}><h2 className="display">Décrivez le problème, on vous chiffre</h2></Reveal>
+          <Reveal delay={0.1}><p>Un bruit, un voyant allumé, une panne&nbsp;? Indiquez-le et obtenez une première estimation immédiate.</p></Reveal>
+        </div>
+
+        <Reveal delay={0.12}>
+          <form className="qsearch" onSubmit={onSubmit}>
+            <div className="qsearch-row">
+              <div className="qsearch-field qsearch-main">
+                <IconSearch width={18} height={18} />
+                <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder="Ex : bruit au freinage, voyant moteur allumé…" />
+              </div>
+              <input className="qsearch-side" type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Marque / modèle" />
+              <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
+              <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
+            </div>
+          </form>
+          <div className="qchips">
+            <span className="qchips-label">Recherches fréquentes</span>
+            <div className="qchips-row">
+              {FREQUENT_SEARCHES.map((f) => (
+                <button key={f.label} type="button" className={`qchip ${f.featured ? "qchip-featured" : ""}`} onClick={() => onChip(f.query, f.label)}>{f.label}</button>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        {submitted && (
+          <Reveal className="qresult">
+            {result ? (
+              <div className="qresult-card">
+                <div className="qresult-head">
+                  <span className="qresult-tag">{result.category.label}</span>
+                  {(brand || year) && <span className="qresult-vehicle">{[brand, year].filter(Boolean).join(" · ")}</span>}
+                </div>
+                <div className="qresult-breakdown">
+                  {result.partsMax > 0 && (
+                    <div className="qline"><span>Pièces</span><b className="tnum">{result.partsMin}–{result.partsMax} €</b></div>
+                  )}
+                  <div className="qline"><span>Main d&apos;œuvre (≈{result.hoursMin}–{result.hoursMax} h)</span><b className="tnum">{result.laborMin}–{result.laborMax} €</b></div>
+                  <div className="qline qline-total"><span>Total estimé</span><b className="tnum">{result.totalMin}–{result.totalMax} €</b></div>
+                </div>
+                {result.category.note && <p className="qresult-note">{result.category.note}</p>}
+                {result.ageNote && <p className="qresult-note">{result.ageNote}</p>}
+                <div className="qresult-cta">
+                  <button className="btn btn-red" onClick={() => goVroomly("quote_" + result.category.id)}>Réserver ce créneau <span className="btn-arrow">→</span></button>
+                  <a className="btn btn-outline" href="#contact">Être rappelé</a>
+                </div>
+                <p className="qresult-disclaimer">Estimation indicative à partir de tarifs moyens constatés, confirmée après diagnostic en atelier.</p>
+              </div>
+            ) : (
+              <div className="qresult-card qresult-empty">
+                <p>On n&apos;a pas identifié automatiquement votre panne. Un diagnostic complet reste la solution la plus fiable.</p>
+                <div className="qresult-cta">
+                  <button className="btn btn-red" onClick={() => goVroomly("quote_no_match")}>Diagnostic dès 55&nbsp;€ <span className="btn-arrow">→</span></button>
+                  <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("quote_no_match")}><IconPhone width={16} height={16} /> {SITE.phone}</a>
+                </div>
+              </div>
+            )}
+          </Reveal>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /* ---------- Services accordion (numéroté, façon Autovera) ---------- */
 const SERVICE_IMG = ["/photos/hero.jpg", "/photos/engine.jpg", "/photos/dark.jpg", "/photos/wheel.jpg"];
 function ServicesAccordion() {
@@ -287,6 +384,7 @@ export default function Home() {
         <div className="wrap">
           <a href="#top" aria-label="Garage D'Aumetz"><LogoImg /></a>
           <nav className="hdr-nav">
+            <a className="link" href="#devis-instantane">Devis instantané</a>
             <a className="link" href="#prestations">Prestations</a>
             <a className="link" href="#tarifs">Tarifs</a>
             <a className="link" href="#avis">Avis</a>
@@ -319,6 +417,8 @@ export default function Home() {
         </div>
         <div className="hero-progress" aria-hidden><div className="wrap"><div className="hero-progress-bar" /></div></div>
       </section>
+
+      <QuoteEstimator />
 
       {/* STATS BAR */}
       <section className="stats">
@@ -494,6 +594,12 @@ export default function Home() {
             <div className="foot-brand-col">
               <LogoText />
               <p className="foot-lead">Votre garage automobile indépendant à Aumetz, en Moselle. Toutes marques, devis clair, travail garanti.</p>
+              <div className="foot-social">
+                {/* Instagram/X à brancher quand les comptes seront créés */}
+                <a href="#" aria-label="Instagram (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconInstagram width={18} height={18} /></a>
+                <a href="#" aria-label="X / Twitter (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconX width={18} height={18} /></a>
+                <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" aria-label="Vroomly" className="foot-social-btn" onClick={() => goVroomly("footer_social")}><IconVroomly width={18} height={18} /></a>
+              </div>
             </div>
             <div className="foot-col">
               <h5>Prestations</h5>

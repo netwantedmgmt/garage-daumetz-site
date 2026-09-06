@@ -164,6 +164,46 @@ export function IconQuote(p: SVGProps<SVGSVGElement>) {
   );
 }
 
+/* Loupe — recherche / devis instantané */
+export function IconSearch(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4.3-4.3" />
+    </svg>
+  );
+}
+
+/* Instagram */
+export function IconInstagram(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/* X (ex-Twitter) */
+export function IconX(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} strokeWidth={1.8} {...p}>
+      <path d="M4.5 4.5l15 15M19.5 4.5l-15 15" />
+    </svg>
+  );
+}
+
+/* Vroomly — monogramme générique en attendant le logo officiel */
+export function IconVroomly(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="6" />
+      <path d="M7.5 8l4.5 9 4.5-9" />
+    </svg>
+  );
+}
+
 export const PRESTA_ICONS = {
   vidange: IconVidange,
   frein: IconFrein,
