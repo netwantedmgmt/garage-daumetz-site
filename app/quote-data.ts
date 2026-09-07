@@ -4,6 +4,8 @@
    des prix contractuels. Le taux horaire et les fourchettes pièces sont à
    valider/affiner avec le garage (marge voulue, pas de prix excessifs). */
 
+import type { FuelType } from "./vehicle-data";
+
 export const HOURLY_RATE = 59; // €/h — taux moyen main d'œuvre garage indépendant
 
 export type QuoteCategory = {
@@ -104,9 +106,19 @@ export type QuoteResult = {
   hoursMin: number;
   hoursMax: number;
   ageNote?: string;
+  fuelNote?: string;
+  /* true : cette prestation n'existe pas pour ce type de motorisation
+     (ex. vidange/distribution sur un 100% électrique) — pas de prix à afficher. */
+  notApplicable?: boolean;
 };
 
-export function matchQuote(problem: string, year?: number): QuoteResult | null {
+/* Prestations propres aux moteurs thermiques — sans objet sur un 100% électrique. */
+const COMBUSTION_ONLY = new Set(["vidange", "distribution", "embrayage", "echappement"]);
+/* Pièces généralement plus chères en diesel (turbo, injection HP, FAP) — majoration
+   indicative et transparente, pas une donnée constructeur précise. */
+const DIESEL_UPCHARGE = new Set(["distribution", "embrayage", "echappement"]);
+
+export function matchQuote(problem: string, year?: number, fuel?: FuelType): QuoteResult | null {
   if (!problem || !problem.trim()) return null;
   let best: QuoteCategory | null = null;
   let bestScore = 0;
@@ -116,12 +128,20 @@ export function matchQuote(problem: string, year?: number): QuoteResult | null {
   }
   if (!best || bestScore === 0) return null;
 
+  if (fuel === "electrique" && COMBUSTION_ONLY.has(best.id)) {
+    return {
+      category: best, partsMin: 0, partsMax: 0, laborMin: 0, laborMax: 0,
+      totalMin: 0, totalMax: 0, hoursMin: 0, hoursMax: 0, notApplicable: true,
+    };
+  }
+
   const { partsMin, partsMax, hoursMin, hoursMax } = best;
   const laborMin = Math.round(hoursMin * HOURLY_RATE);
   const laborMax = Math.round(hoursMax * HOURLY_RATE);
   let totalMin = partsMin + laborMin;
   let totalMax = partsMax + laborMax;
   let ageNote: string | undefined;
+  let fuelNote: string | undefined;
 
   if (year && year > 1970 && year <= new Date().getFullYear()) {
     const age = new Date().getFullYear() - year;
@@ -134,7 +154,12 @@ export function matchQuote(problem: string, year?: number): QuoteResult | null {
     }
   }
 
-  return { category: best, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote };
+  if (fuel === "diesel" && DIESEL_UPCHARGE.has(best.id)) {
+    totalMax = Math.round(totalMax * 1.1);
+    fuelNote = "Diesel : pièces généralement plus coûteuses (turbo, injection HP) — fourchette haute majorée de 10 %.";
+  }
+
+  return { category: best, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote };
 }
 
 export type FrequentSearch = { label: string; query: string; featured?: boolean };

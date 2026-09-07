@@ -6,6 +6,7 @@ import { track } from "@vercel/analytics";
 import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
 import { InfiniteMovingCards } from "./aceternity";
 import { matchQuote, FREQUENT_SEARCHES, type QuoteResult } from "./quote-data";
+import { BRANDS, modelsFor, FUEL_TYPES, type FuelType } from "./vehicle-data";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -202,19 +203,24 @@ function LocationMap() {
 function QuoteEstimator() {
   const [problem, setProblem] = useState("");
   const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+  const [fuel, setFuel] = useState<FuelType | "">("");
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<QuoteResult | null>(null);
+  const models = modelsFor(brand);
+
+  function onBrandChange(v: string) { setBrand(v); setModel(""); }
 
   function runEstimate(text?: string) {
     const q = (text ?? problem).trim();
     if (!q) return;
     if (text !== undefined) setProblem(text);
     const yearNum = year ? parseInt(year, 10) : undefined;
-    const r = matchQuote(q, yearNum && !Number.isNaN(yearNum) ? yearNum : undefined);
+    const r = matchQuote(q, yearNum && !Number.isNaN(yearNum) ? yearNum : undefined, fuel || undefined);
     setResult(r);
     setSubmitted(true);
-    trackEvent("quote_estimate", { matched: r ? r.category.id : "none" });
+    trackEvent("quote_estimate", { matched: r ? r.category.id : "none", brand, fuel });
   }
 
   function onSubmit(e: React.FormEvent) { e.preventDefault(); runEstimate(); }
@@ -236,8 +242,19 @@ function QuoteEstimator() {
                 <IconSearch width={18} height={18} />
                 <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder="Ex : bruit au freinage, voyant moteur allumé…" />
               </div>
-              <input className="qsearch-side" type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Marque / modèle" />
+              <select className="qsearch-side" value={brand} onChange={(e) => onBrandChange(e.target.value)}>
+                <option value="">Marque</option>
+                {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
+              </select>
+              <select className="qsearch-side" value={model} onChange={(e) => setModel(e.target.value)} disabled={!brand}>
+                <option value="">Modèle</option>
+                {models.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
               <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
+              <select className="qsearch-side" value={fuel} onChange={(e) => setFuel(e.target.value as FuelType | "")}>
+                <option value="">Motorisation</option>
+                {FUEL_TYPES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
               <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
             </div>
           </form>
@@ -253,11 +270,15 @@ function QuoteEstimator() {
 
         {submitted && (
           <Reveal className="qresult">
-            {result ? (
+            {result && !result.notApplicable ? (
               <div className="qresult-card">
                 <div className="qresult-head">
                   <span className="qresult-tag">{result.category.label}</span>
-                  {(brand || year) && <span className="qresult-vehicle">{[brand, year].filter(Boolean).join(" · ")}</span>}
+                  {(brand || model || year || fuel) && (
+                    <span className="qresult-vehicle">
+                      {[brand, model, year, fuel && FUEL_TYPES.find((f) => f.value === fuel)?.label].filter(Boolean).join(" · ")}
+                    </span>
+                  )}
                 </div>
                 <div className="qresult-breakdown">
                   {result.partsMax > 0 && (
@@ -268,11 +289,21 @@ function QuoteEstimator() {
                 </div>
                 {result.category.note && <p className="qresult-note">{result.category.note}</p>}
                 {result.ageNote && <p className="qresult-note">{result.ageNote}</p>}
+                {result.fuelNote && <p className="qresult-note">{result.fuelNote}</p>}
                 <div className="qresult-cta">
                   <button className="btn btn-red" onClick={() => goVroomly("quote_" + result.category.id)}>Réserver ce créneau <span className="btn-arrow">→</span></button>
                   <a className="btn btn-outline" href="#contact">Être rappelé</a>
                 </div>
                 <p className="qresult-disclaimer">Estimation indicative à partir de tarifs moyens constatés, confirmée après diagnostic en atelier.</p>
+              </div>
+            ) : result?.notApplicable ? (
+              <div className="qresult-card qresult-empty">
+                <div className="qresult-head"><span className="qresult-tag">{result.category.label}</span></div>
+                <p>Cette prestation concerne les moteurs thermiques et ne s&apos;applique pas à un véhicule 100&nbsp;% électrique. Nos équipes restent à votre disposition pour un diagnostic adapté (freinage, climatisation, batterie de servitude…).</p>
+                <div className="qresult-cta">
+                  <button className="btn btn-red" onClick={() => goVroomly("quote_ev_" + result.category.id)}>Nous contacter <span className="btn-arrow">→</span></button>
+                  <a className="btn btn-outline" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("quote_ev")}><IconPhone width={16} height={16} /> {SITE.phone}</a>
+                </div>
               </div>
             ) : (
               <div className="qresult-card qresult-empty">

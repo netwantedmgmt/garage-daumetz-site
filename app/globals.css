@@ -97,10 +97,14 @@ img { max-width: 100%; display: block; }
 .qsearch-field { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--text-faint); }
 .qsearch-field input { flex: 1; background: none; border: 0; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; padding: 12px 0; }
 .qsearch-field input::placeholder { color: var(--text-faint); }
-.qsearch-side { flex: 0 1 150px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: var(--font-body); font-size: 15px; outline: none; }
+.qsearch-side { flex: 1 1 128px; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px; color: var(--text); font-family: var(--font-body); font-size: 14.5px; outline: none; cursor: pointer; }
+select.qsearch-side { appearance: auto; }
+select.qsearch-side:invalid, select.qsearch-side option[value=""] { color: var(--text-faint); }
+.qsearch-side:disabled { opacity: .5; cursor: not-allowed; }
 .qsearch-side::placeholder { color: var(--text-faint); }
-.qsearch-year { flex-basis: 100px; }
+.qsearch-year { flex-basis: 90px; cursor: text; }
 .qsearch-submit { flex: 0 0 auto; }
+@media (max-width: 760px) { .qsearch-side { flex-basis: 47%; } }
 @media (max-width: 640px) { .qsearch-row { flex-direction: column; } .qsearch-side, .qsearch-submit { width: 100%; } }
 
 .qchips { max-width: 900px; margin: 20px auto 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
