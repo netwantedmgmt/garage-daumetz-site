@@ -19,7 +19,6 @@ import {
   IconSearch,
   IconInstagram,
   IconX,
-  IconVroomly,
 } from "./icons";
 
 function trackEvent(name: string, props?: Record<string, string>) {
@@ -629,7 +628,7 @@ export default function Home() {
                 {/* Instagram/X à brancher quand les comptes seront créés */}
                 <a href="#" aria-label="Instagram (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconInstagram width={18} height={18} /></a>
                 <a href="#" aria-label="X / Twitter (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconX width={18} height={18} /></a>
-                <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" aria-label="Vroomly" className="foot-social-btn" onClick={() => goVroomly("footer_social")}><IconVroomly width={18} height={18} /></a>
+                <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" aria-label="Vroomly" className="foot-social-btn" onClick={() => goVroomly("footer_social")}><span className="icon-vroomly" aria-hidden /></a>
               </div>
             </div>
             <div className="foot-col">
