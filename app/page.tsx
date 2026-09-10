@@ -6,7 +6,7 @@ import { track } from "@vercel/analytics";
 import { SITE, HOURS, FAQ, RATING, REVIEWS } from "./site";
 import { InfiniteMovingCards } from "./aceternity";
 import { matchQuote, FREQUENT_SEARCHES, type QuoteResult } from "./quote-data";
-import { BRANDS, modelsFor, FUEL_TYPES, type FuelType } from "./vehicle-data";
+import { BRANDS, modelsFor, motorisationsFor, type FuelType } from "./vehicle-data";
 import {
   PRESTA_ICONS,
   IconCheck,
@@ -204,12 +204,15 @@ function QuoteEstimator() {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
-  const [fuel, setFuel] = useState<FuelType | "">("");
+  const [motor, setMotor] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<QuoteResult | null>(null);
   const models = modelsFor(brand);
+  const motorisations = brand && model ? motorisationsFor(brand, model) : [];
+  const fuel: FuelType | "" = motorisations.find((m) => m.label === motor)?.fuel ?? "";
 
-  function onBrandChange(v: string) { setBrand(v); setModel(""); }
+  function onBrandChange(v: string) { setBrand(v); setModel(""); setMotor(""); }
+  function onModelChange(v: string) { setModel(v); setMotor(""); }
 
   function runEstimate(text?: string) {
     const q = (text ?? problem).trim();
@@ -245,14 +248,14 @@ function QuoteEstimator() {
                 <option value="">Marque</option>
                 {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
               </select>
-              <select className="qsearch-side" value={model} onChange={(e) => setModel(e.target.value)} disabled={!brand}>
+              <select className="qsearch-side" value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand}>
                 <option value="">Modèle</option>
                 {models.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
               <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
-              <select className="qsearch-side" value={fuel} onChange={(e) => setFuel(e.target.value as FuelType | "")}>
+              <select className="qsearch-side" value={motor} onChange={(e) => setMotor(e.target.value)} disabled={!model}>
                 <option value="">Motorisation</option>
-                {FUEL_TYPES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                {motorisations.map((m) => <option key={m.label} value={m.label}>{m.label}</option>)}
               </select>
               <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
             </div>
@@ -273,9 +276,9 @@ function QuoteEstimator() {
               <div className="qresult-card">
                 <div className="qresult-head">
                   <span className="qresult-tag">{result.category.label}</span>
-                  {(brand || model || year || fuel) && (
+                  {(brand || model || year || motor) && (
                     <span className="qresult-vehicle">
-                      {[brand, model, year, fuel && FUEL_TYPES.find((f) => f.value === fuel)?.label].filter(Boolean).join(" · ")}
+                      {[brand, model, year, motor].filter(Boolean).join(" · ")}
                     </span>
                   )}
                 </div>
