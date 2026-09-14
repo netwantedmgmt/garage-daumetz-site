@@ -113,6 +113,23 @@ select.qsearch-side:invalid, select.qsearch-side option[value=""] { color: var(-
   .qsearch-side { width: 100%; }
 }
 
+.qplate-row { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.qplate-field { display: flex; gap: 10px; flex-wrap: wrap; }
+.qplate-field input { flex: 1 1 220px; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: var(--font-body); font-size: 14.5px; letter-spacing: .04em; outline: none; }
+.qplate-field input::placeholder { color: var(--text-faint); letter-spacing: normal; }
+.qplate-field input:disabled { opacity: .6; }
+.qplate-btn { flex: 0 0 auto; padding: 12px 18px; font-size: 14px; }
+.qplate-status { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13.5px; padding: 4px 2px; }
+.qplate-ok { color: var(--text); }
+.qplate-ok svg { color: var(--red); flex: 0 0 auto; }
+.qplate-warn { color: var(--text-faint); }
+.qplate-reset { background: none; border: 0; padding: 0; color: var(--text-faint); text-decoration: underline; cursor: pointer; font-size: 13px; margin-left: auto; }
+@media (max-width: 640px) {
+  .qplate-field { flex-direction: column; }
+  .qplate-btn { width: 100%; }
+  .qplate-reset { margin-left: 0; }
+}
+
 .qchips { max-width: 900px; margin: 20px auto 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .qchips-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
 .qchips-row { display: flex; flex-wrap: wrap; gap: 9px; }

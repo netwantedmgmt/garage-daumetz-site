@@ -199,6 +199,8 @@ function LocationMap() {
 }
 
 /* ---------- Devis instantané (estimation par correspondance mots-clés) ---------- */
+type PlateResult = { marque: string; modele: string; motorisation: string; carburant: FuelType; annee: number | null; label: string };
+
 function QuoteEstimator() {
   const [problem, setProblem] = useState("");
   const [brand, setBrand] = useState("");
@@ -209,20 +211,48 @@ function QuoteEstimator() {
   const [result, setResult] = useState<QuoteResult | null>(null);
   const models = modelsFor(brand);
   const motorisations = brand && model ? motorisationsFor(brand, model) : [];
-  const fuel: FuelType | "" = motorisations.find((m) => m.label === motor)?.fuel ?? "";
+  const manualFuel: FuelType | "" = motorisations.find((m) => m.label === motor)?.fuel ?? "";
+
+  const [plate, setPlate] = useState("");
+  const [plateStatus, setPlateStatus] = useState<"idle" | "loading" | "ok" | "notfound" | "error">("idle");
+  const [plateResult, setPlateResult] = useState<PlateResult | null>(null);
+
+  const fuel: FuelType | "" = plateResult ? plateResult.carburant : manualFuel;
+  const effectiveYear = plateResult ? plateResult.annee ?? undefined : year ? parseInt(year, 10) : undefined;
+  const vehicleLabel = plateResult ? plateResult.label : [brand, model, year, motor].filter(Boolean).join(" · ");
 
   function onBrandChange(v: string) { setBrand(v); setModel(""); setMotor(""); }
   function onModelChange(v: string) { setModel(v); setMotor(""); }
+
+  function resetPlate() { setPlateResult(null); setPlateStatus("idle"); setPlate(""); }
+
+  async function lookupPlate() {
+    const p = plate.trim();
+    if (!p) return;
+    setPlateStatus("loading");
+    trackEvent("plate_lookup_attempt");
+    try {
+      const res = await fetch(`/api/plate-lookup?plaque=${encodeURIComponent(p)}`);
+      if (res.status === 404) { setPlateStatus("notfound"); setPlateResult(null); return; }
+      if (!res.ok) { setPlateStatus("error"); setPlateResult(null); return; }
+      const data = await res.json();
+      setPlateResult({ marque: data.marque, modele: data.modele, motorisation: data.motorisation, carburant: data.carburant, annee: data.annee, label: data.label });
+      setPlateStatus("ok");
+      trackEvent("plate_lookup_success", { marque: data.marque });
+    } catch {
+      setPlateStatus("error");
+      setPlateResult(null);
+    }
+  }
 
   function runEstimate(text?: string) {
     const q = (text ?? problem).trim();
     if (!q) return;
     if (text !== undefined) setProblem(text);
-    const yearNum = year ? parseInt(year, 10) : undefined;
-    const r = matchQuote(q, yearNum && !Number.isNaN(yearNum) ? yearNum : undefined, fuel || undefined);
+    const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined);
     setResult(r);
     setSubmitted(true);
-    trackEvent("quote_estimate", { matched: r ? r.category.id : "none", brand, fuel });
+    trackEvent("quote_estimate", { matched: r ? r.category.id : "none", brand: plateResult?.marque || brand, fuel });
   }
 
   function onSubmit(e: React.FormEvent) { e.preventDefault(); runEstimate(); }
@@ -247,21 +277,52 @@ function QuoteEstimator() {
                 </div>
                 <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
               </div>
-              <div className="qsearch-row-filters">
-                <select className="qsearch-side" value={brand} onChange={(e) => onBrandChange(e.target.value)}>
-                  <option value="">Marque</option>
-                  {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
-                </select>
-                <select className="qsearch-side" value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand}>
-                  <option value="">Modèle</option>
-                  {models.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-                <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
-                <select className="qsearch-side" value={motor} onChange={(e) => setMotor(e.target.value)} disabled={!model}>
-                  <option value="">Motorisation</option>
-                  {motorisations.map((m) => <option key={m.label} value={m.label}>{m.label}</option>)}
-                </select>
+              <div className="qplate-row">
+                <div className="qplate-field">
+                  <input
+                    type="text"
+                    value={plate}
+                    onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                    placeholder="Plaque d'immatriculation (ex : FH-034-DD)"
+                    maxLength={12}
+                    disabled={!!plateResult}
+                  />
+                  {!plateResult && (
+                    <button type="button" className="btn btn-outline qplate-btn" onClick={lookupPlate} disabled={!plate.trim() || plateStatus === "loading"}>
+                      {plateStatus === "loading" ? "Recherche…" : "Identifier mon véhicule"}
+                    </button>
+                  )}
+                </div>
+                {plateStatus === "ok" && plateResult && (
+                  <div className="qplate-status qplate-ok">
+                    <IconCheck width={14} height={14} /> {plateResult.label}
+                    <button type="button" className="qplate-reset" onClick={resetPlate}>Modifier / saisir manuellement</button>
+                  </div>
+                )}
+                {plateStatus === "notfound" && (
+                  <div className="qplate-status qplate-warn">Véhicule non reconnu — renseignez-le manuellement ci-dessous.</div>
+                )}
+                {plateStatus === "error" && (
+                  <div className="qplate-status qplate-warn">Service indisponible pour le moment — renseignez votre véhicule manuellement ci-dessous.</div>
+                )}
               </div>
+              {!plateResult && (
+                <div className="qsearch-row-filters">
+                  <select className="qsearch-side" value={brand} onChange={(e) => onBrandChange(e.target.value)}>
+                    <option value="">Marque</option>
+                    {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
+                  </select>
+                  <select className="qsearch-side" value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand}>
+                    <option value="">Modèle</option>
+                    {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
+                  <select className="qsearch-side" value={motor} onChange={(e) => setMotor(e.target.value)} disabled={!model}>
+                    <option value="">Motorisation</option>
+                    {motorisations.map((m) => <option key={m.label} value={m.label}>{m.label}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           </form>
           <div className="qchips">
@@ -280,11 +341,7 @@ function QuoteEstimator() {
               <div className="qresult-card">
                 <div className="qresult-head">
                   <span className="qresult-tag">{result.category.label}</span>
-                  {(brand || model || year || motor) && (
-                    <span className="qresult-vehicle">
-                      {[brand, model, year, motor].filter(Boolean).join(" · ")}
-                    </span>
-                  )}
+                  {vehicleLabel && <span className="qresult-vehicle">{vehicleLabel}</span>}
                 </div>
                 <div className="qresult-breakdown">
                   {result.partsMax > 0 && (
