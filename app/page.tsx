@@ -239,25 +239,29 @@ function QuoteEstimator() {
 
         <Reveal delay={0.12}>
           <form className="qsearch" onSubmit={onSubmit}>
-            <div className="qsearch-row">
-              <div className="qsearch-field qsearch-main">
-                <IconSearch width={18} height={18} />
-                <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder="Ex : bruit au freinage, voyant moteur allumé…" />
+            <div className="qsearch-box">
+              <div className="qsearch-row-main">
+                <div className="qsearch-field qsearch-main">
+                  <IconSearch width={18} height={18} />
+                  <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder="Ex : bruit au freinage, voyant moteur allumé…" />
+                </div>
+                <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
               </div>
-              <select className="qsearch-side" value={brand} onChange={(e) => onBrandChange(e.target.value)}>
-                <option value="">Marque</option>
-                {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
-              </select>
-              <select className="qsearch-side" value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand}>
-                <option value="">Modèle</option>
-                {models.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
-              <select className="qsearch-side" value={motor} onChange={(e) => setMotor(e.target.value)} disabled={!model}>
-                <option value="">Motorisation</option>
-                {motorisations.map((m) => <option key={m.label} value={m.label}>{m.label}</option>)}
-              </select>
-              <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
+              <div className="qsearch-row-filters">
+                <select className="qsearch-side" value={brand} onChange={(e) => onBrandChange(e.target.value)}>
+                  <option value="">Marque</option>
+                  {BRANDS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
+                </select>
+                <select className="qsearch-side" value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand}>
+                  <option value="">Modèle</option>
+                  {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <input className="qsearch-side qsearch-year" type="number" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Année" min={1980} max={new Date().getFullYear()} />
+                <select className="qsearch-side" value={motor} onChange={(e) => setMotor(e.target.value)} disabled={!model}>
+                  <option value="">Motorisation</option>
+                  {motorisations.map((m) => <option key={m.label} value={m.label}>{m.label}</option>)}
+                </select>
+              </div>
             </div>
           </form>
           <div className="qchips">

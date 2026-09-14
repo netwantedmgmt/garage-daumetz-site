@@ -93,19 +93,25 @@ img { max-width: 100%; display: block; }
 /* ============ DEVIS INSTANTANÉ ============ */
 .quote { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .qsearch { max-width: 900px; margin: 0 auto; }
-.qsearch-row { display: flex; gap: 10px; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 16px; padding: 10px; }
-.qsearch-field { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--text-faint); }
-.qsearch-field input { flex: 1; background: none; border: 0; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; padding: 12px 0; }
+.qsearch-box { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 16px; padding: 10px; }
+.qsearch-row-main { display: flex; gap: 10px; align-items: stretch; }
+.qsearch-row-filters { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--line); }
+.qsearch-field { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--text-faint); }
+.qsearch-field input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; padding: 12px 0; }
 .qsearch-field input::placeholder { color: var(--text-faint); }
-.qsearch-side { flex: 1 1 128px; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px; color: var(--text); font-family: var(--font-body); font-size: 14.5px; outline: none; cursor: pointer; }
+.qsearch-side { flex: 1 1 150px; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px; color: var(--text); font-family: var(--font-body); font-size: 14.5px; outline: none; cursor: pointer; text-overflow: ellipsis; }
 select.qsearch-side { appearance: auto; }
 select.qsearch-side:invalid, select.qsearch-side option[value=""] { color: var(--text-faint); }
 .qsearch-side:disabled { opacity: .5; cursor: not-allowed; }
 .qsearch-side::placeholder { color: var(--text-faint); }
-.qsearch-year { flex-basis: 90px; cursor: text; }
+.qsearch-year { flex-basis: 100px; cursor: text; }
 .qsearch-submit { flex: 0 0 auto; }
-@media (max-width: 760px) { .qsearch-side { flex-basis: 47%; } }
-@media (max-width: 640px) { .qsearch-row { flex-direction: column; } .qsearch-side, .qsearch-submit { width: 100%; } }
+@media (max-width: 640px) {
+  .qsearch-row-main { flex-direction: column; }
+  .qsearch-submit { width: 100%; }
+  .qsearch-row-filters { flex-direction: column; }
+  .qsearch-side { width: 100%; }
+}
 
 .qchips { max-width: 900px; margin: 20px auto 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .qchips-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
