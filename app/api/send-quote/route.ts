@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SITE } from "../../site";
 import { getCategoryById } from "../../quote-data";
+import { sendGarageSms } from "../../lib/sms";
 
 const clean = (v: unknown, max = 500) =>
   typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -95,6 +96,13 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       return NextResponse.json({ error: "send_failed" }, { status: 502 });
     }
+
+    // Notification SMS instantanée en plus de l'email détaillé — best-effort,
+    // ne bloque jamais la réponse (email = canal de référence).
+    void sendGarageSms(
+      `GDA — Nouveau devis envoyé : ${category.label}. ${name}, ${phone}. Total est. ${totalMin}-${totalMax}€ TTC. Détail par email.`
+    );
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "send_failed" }, { status: 502 });
