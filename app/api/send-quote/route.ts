@@ -3,6 +3,8 @@ import { SITE } from "../../site";
 import { getCategoryById, garageQuote, type GarageQuote, type PriceLine } from "../../quote-data";
 import type { FuelType } from "../../vehicle-data";
 import { sendGarageSms } from "../../lib/sms";
+import { rateLimit, clientKey } from "../../lib/rateLimit";
+import { logError } from "../../lib/log";
 
 const clean = (v: unknown, max = 500) =>
   typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -166,6 +168,10 @@ function buildEmailText(opts: {
 }
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`send-quote:${clientKey(req)}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -192,6 +198,7 @@ export async function POST(req: NextRequest) {
   const kType = clean(body.kType, 20) || undefined;
   const engineCode = clean(body.engineCode, 30) || undefined;
   const brand = clean(body.brand, 60) || undefined;
+  const performance = body.performance === true;
 
   if (!name || !phone || !problem || !categoryId) {
     return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
@@ -204,7 +211,7 @@ export async function POST(req: NextRequest) {
   if (!category) {
     return NextResponse.json({ error: "invalid_category" }, { status: 400 });
   }
-  const gq = garageQuote(category, year, fuel, brand);
+  const gq = garageQuote(category, year, fuel, brand, performance);
   if (gq.notApplicable) {
     return NextResponse.json({ error: "not_applicable" }, { status: 400 });
   }
@@ -232,6 +239,7 @@ export async function POST(req: NextRequest) {
       }),
     });
     if (!res.ok) {
+      logError("send-quote.resend", { status: res.status, body: await res.text().catch(() => ""), category: category.id });
       return NextResponse.json({ error: "send_failed" }, { status: 502 });
     }
 
@@ -242,7 +250,8 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (e) {
+    logError("send-quote.resend", { message: e instanceof Error ? e.message : String(e), category: category.id });
     return NextResponse.json({ error: "send_failed" }, { status: 502 });
   }
 }

@@ -3,7 +3,7 @@
    ⚠️ Tarifs indicatifs à ajuster avec le client — ce sont des ESTIMATIONS, pas
    des prix contractuels. Fourchettes pièces à valider/affiner avec le garage. */
 
-import { tierMultiplierFor, type FuelType } from "./vehicle-data";
+import { tierMultiplierFor, SPORT_MULTIPLIER, type FuelType } from "./vehicle-data";
 
 /* Grille tarifaire réelle communiquée par le garage (affiche atelier, 2026) :
    T1 Entretien courant (vidange, filtres, freins, pneus, ampoules, échappement,
@@ -32,6 +32,10 @@ export type QuoteCategory = {
   note?: string;
   parts: PartLine[];
 };
+
+function fullMultiplier(brand?: string, performance?: boolean): number {
+  return tierMultiplierFor(brand) * (performance ? SPORT_MULTIPLIER : 1);
+}
 
 function partsRange(parts: PartLine[], multiplier = 1): { min: number; max: number } {
   let min = 0, max = 0;
@@ -199,7 +203,7 @@ const DIESEL_UPCHARGE = new Set(["distribution", "embrayage", "echappement"]);
    matchQuote (recherche client par mots-clés) et la route /api/send-quote
    (recalcul serveur pour ne jamais faire confiance à des chiffres envoyés
    par le client). Seule source de vérité pour les prix. */
-export function priceCategory(category: QuoteCategory, year?: number, fuel?: FuelType, brand?: string): QuoteResult {
+export function priceCategory(category: QuoteCategory, year?: number, fuel?: FuelType, brand?: string, performance?: boolean): QuoteResult {
   if (fuel === "electrique" && COMBUSTION_ONLY.has(category.id)) {
     return {
       category, partsMin: 0, partsMax: 0, laborMin: 0, laborMax: 0,
@@ -207,7 +211,7 @@ export function priceCategory(category: QuoteCategory, year?: number, fuel?: Fue
     };
   }
 
-  const { min: partsMin, max: partsMax } = partsRange(category.parts, tierMultiplierFor(brand));
+  const { min: partsMin, max: partsMax } = partsRange(category.parts, fullMultiplier(brand, performance));
   const { hoursMin, hoursMax } = category;
   const rate = LABOR_RATES[category.laborTier];
   const laborMin = Math.round(hoursMin * rate);
@@ -261,7 +265,7 @@ function refPrice(p: PartLine, multiplier = 1): number {
   return Math.round(((p.priceMin + p.priceMax) / 2) * multiplier);
 }
 
-export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelType, brand?: string): GarageQuote {
+export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelType, brand?: string, performance?: boolean): GarageQuote {
   if (fuel === "electrique" && COMBUSTION_ONLY.has(category.id)) {
     return {
       category, requiredParts: [], optionalParts: [], laborHours: 0, laborRate: 0,
@@ -269,7 +273,7 @@ export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelT
     };
   }
 
-  const multiplier = tierMultiplierFor(brand);
+  const multiplier = fullMultiplier(brand, performance);
   const toLine = (p: PartLine): PriceLine => {
     const unitPrice = refPrice(p, multiplier);
     return { label: p.label, qty: p.qty, unitPrice, subtotal: unitPrice * p.qty };
@@ -307,7 +311,7 @@ export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelT
   return { category, requiredParts, optionalParts, laborHours, laborRate, laborTotal, surcharges, partsTotal, grandTotal };
 }
 
-export function matchQuote(problem: string, year?: number, fuel?: FuelType, brand?: string): QuoteResult | null {
+export function matchQuote(problem: string, year?: number, fuel?: FuelType, brand?: string, performance?: boolean): QuoteResult | null {
   if (!problem || !problem.trim()) return null;
   let best: QuoteCategory | null = null;
   let bestScore = 0;
@@ -316,7 +320,7 @@ export function matchQuote(problem: string, year?: number, fuel?: FuelType, bran
     if (s > bestScore) { bestScore = s; best = cat; }
   }
   if (!best || bestScore === 0) return null;
-  return priceCategory(best, year, fuel, brand);
+  return priceCategory(best, year, fuel, brand, performance);
 }
 
 export type FrequentSearch = { label: string; query: string; featured?: boolean };

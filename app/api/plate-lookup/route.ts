@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, clientKey } from "../../lib/rateLimit";
+import { logError } from "../../lib/log";
+import { isPerformanceLabel } from "../../vehicle-data";
 
 const RAPIDAPI_HOST = "api-de-plaque-d-immatriculation-france.p.rapidapi.com";
 
@@ -43,6 +46,10 @@ function firstKnown(...vals: unknown[]): string {
 }
 
 export async function GET(req: NextRequest) {
+  if (!rateLimit(`plate:${clientKey(req)}`, 8, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const plaqueRaw = req.nextUrl.searchParams.get("plaque") || "";
   const plaque = plaqueRaw.trim().toUpperCase().slice(0, 12);
   if (!plaque || plaque.length < 4) {
@@ -63,7 +70,8 @@ export async function GET(req: NextRequest) {
       },
       cache: "no-store",
     });
-  } catch {
+  } catch (e) {
+    logError("plate-lookup.unreachable", { message: e instanceof Error ? e.message : String(e) });
     return NextResponse.json({ error: "upstream_unreachable" }, { status: 502 });
   }
 
@@ -73,6 +81,9 @@ export async function GET(req: NextRequest) {
     // distingue que l'échec d'authentification (clé invalide) du reste, pour ne
     // jamais bloquer un client sur une plaque juste non reconnue.
     if (upstream.status === 401 || upstream.status === 403) {
+      // Ça, en revanche, c'est toujours une vraie panne (clé invalide/expirée/quota
+      // épuisé) — jamais un simple "plaque non trouvée". Mérite d'être visible.
+      logError("plate-lookup.unauthorized", { status: upstream.status });
       return NextResponse.json({ error: "unauthorized" }, { status: 502 });
     }
     return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -81,7 +92,8 @@ export async function GET(req: NextRequest) {
   let json: Record<string, unknown>;
   try {
     json = await upstream.json();
-  } catch {
+  } catch (e) {
+    logError("plate-lookup.parse", { message: e instanceof Error ? e.message : String(e) });
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });
   }
 
@@ -111,6 +123,13 @@ export async function GET(req: NextRequest) {
   const kType = firstKnown(data.AWN_k_type);
   const engineCode = firstKnown(data.AWN_code_moteur);
 
+  // Détection finition sportive : mots-clés dans le libellé constructeur, ou
+  // à défaut une puissance élevée (>= 250 ch, quasi toujours une version
+  // sportive) — heuristique transparente, pas une donnée inventée.
+  const puissance = parseInt(String(data.AWN_puissance_chevaux || "0"), 10);
+  const labelBlob = [data.AWN_label, data.AWN_finition, data.AWN_modele].filter(Boolean).join(" ");
+  const performance = isPerformanceLabel(labelBlob) || puissance >= 250;
+
   return NextResponse.json({
     ok: true,
     marque,
@@ -122,5 +141,6 @@ export async function GET(req: NextRequest) {
     vin: vin || undefined,
     kType: kType || undefined,
     engineCode: engineCode || undefined,
+    performance,
   });
 }

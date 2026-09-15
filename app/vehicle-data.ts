@@ -17,7 +17,7 @@ export const FUEL_TYPES: { value: FuelType; label: string }[] = [
   { value: "electrique", label: "Électrique" },
 ];
 
-export type Motorisation = { label: string; fuel: FuelType };
+export type Motorisation = { label: string; fuel: FuelType; performance?: boolean };
 export type Model = { name: string; motorisations: Motorisation[] };
 export type Brand = { name: string; models: Model[] };
 
@@ -32,6 +32,10 @@ function e(label: string): Motorisation { return { label, fuel: "essence" }; }
 function d(label: string): Motorisation { return { label, fuel: "diesel" }; }
 function h(label: string): Motorisation { return { label, fuel: "hybride" }; }
 function ev(label: string): Motorisation { return { label, fuel: "electrique" }; }
+/* Finition sportive/performance — pièces structurellement plus chères
+   (freins/suspension/moteur haute perf) même au sein d'une marque déjà
+   premium. S'ajoute au multiplicateur de marque, ne le remplace pas. */
+function sport(m: Motorisation): Motorisation { return { ...m, performance: true }; }
 
 export const BRANDS: Brand[] = [
   {
@@ -42,7 +46,7 @@ export const BRANDS: Brand[] = [
       { name: "205", motorisations: [e("1.1"), e("1.4"), e("1.6"), e("1.9 GTI"), d("1.8 D")] },
       { name: "206", motorisations: [e("1.1"), e("1.4"), e("1.6 16v"), e("2.0 16v"), d("1.4 HDi"), d("2.0 HDi")] },
       { name: "207", motorisations: [e("1.4 VTi"), e("1.6 VTi"), e("1.6 THP"), d("1.4 HDi"), d("1.6 HDi")] },
-      { name: "208", motorisations: [e("1.0 VTi 68"), e("1.2 PureTech 82/100"), e("1.2 PureTech 130"), e("1.6 GTi"), d("1.5 BlueHDi 100/130"), ev("e-208")] },
+      { name: "208", motorisations: [e("1.0 VTi 68"), e("1.2 PureTech 82/100"), e("1.2 PureTech 130"), sport(e("1.6 GTi")), d("1.5 BlueHDi 100/130"), ev("e-208")] },
       { name: "306", motorisations: [e("1.4"), e("1.6"), e("1.8"), e("2.0 16v"), d("1.9 D/TD"), d("2.0 HDi")] },
       { name: "307", motorisations: [e("1.4 16v"), e("1.6 16v"), e("2.0 16v"), d("1.6 HDi"), d("2.0 HDi")] },
       { name: "308", motorisations: [e("1.2 PureTech 110/130"), e("1.6 THP"), d("1.5 BlueHDi 130"), d("1.6 BlueHDi 120"), d("2.0 BlueHDi 150/180"), h("Hybrid 225")] },
@@ -117,7 +121,7 @@ export const BRANDS: Brand[] = [
     models: [
       { name: "Up!", motorisations: [e("1.0 MPI 60/75"), e("1.0 TSI 90"), ev("e-Up!")] },
       { name: "Polo", motorisations: [e("1.0 MPI/TSI 65/75/95"), e("1.5 TSI 150"), d("1.6 TDI 80/95")] },
-      { name: "Golf", motorisations: [e("1.0 TSI 90/110"), e("1.5 TSI 130/150"), e("2.0 TSI GTI"), d("1.6 TDI 90/115"), d("2.0 TDI 115/150"), h("GTE"), ev("e-Golf")] },
+      { name: "Golf", motorisations: [e("1.0 TSI 90/110"), e("1.5 TSI 130/150"), sport(e("2.0 TSI GTI")), d("1.6 TDI 90/115"), d("2.0 TDI 115/150"), h("GTE"), ev("e-Golf")] },
       { name: "Jetta", motorisations: [e("1.4 TSI"), e("1.6"), d("1.9 TDI"), d("2.0 TDI")] },
       { name: "Scirocco", motorisations: [e("1.4 TSI"), e("2.0 TSI"), d("2.0 TDI")] },
       { name: "Beetle", motorisations: [e("1.2 TSI"), e("1.4 TSI"), e("2.0 TSI"), d("1.6 TDI"), d("2.0 TDI")] },
@@ -142,15 +146,15 @@ export const BRANDS: Brand[] = [
     models: [
       { name: "A1", motorisations: [e("1.0 TFSI 95"), e("1.4 TFSI"), e("S1"), d("1.6 TDI")] },
       { name: "A3", motorisations: [e("1.0 TFSI"), e("1.5 TFSI"), e("2.0 TFSI"), d("1.6 TDI 90/116"), d("2.0 TDI 150"), h("e-tron/TFSIe")] },
-      { name: "S3", motorisations: [e("2.0 TFSI 300/310")] },
-      { name: "RS3", motorisations: [e("2.5 TFSI 400/400+")] },
+      { name: "S3", motorisations: [sport(e("2.0 TFSI 300/310"))] },
+      { name: "RS3", motorisations: [sport(e("2.5 TFSI 400/400+"))] },
       { name: "A4", motorisations: [e("1.4 TFSI"), e("2.0 TFSI"), d("2.0 TDI 122/150/190"), d("3.0 TDI")] },
       { name: "A4 allroad", motorisations: [e("2.0 TFSI"), d("2.0 TDI"), d("3.0 TDI")] },
-      { name: "RS4", motorisations: [e("2.9 V6 TFSI 450")] },
+      { name: "RS4", motorisations: [sport(e("2.9 V6 TFSI 450"))] },
       { name: "A5", motorisations: [e("2.0 TFSI"), d("2.0 TDI"), d("3.0 TDI")] },
       { name: "A6", motorisations: [e("2.0 TFSI"), e("3.0 TFSI"), d("2.0 TDI"), d("3.0 TDI")] },
       { name: "A6 allroad", motorisations: [d("3.0 TDI")] },
-      { name: "RS6", motorisations: [e("4.0 V8 TFSI 600")] },
+      { name: "RS6", motorisations: [sport(e("4.0 V8 TFSI 600"))] },
       { name: "A7", motorisations: [e("3.0 TFSI"), d("3.0 TDI"), h("55 TFSIe")] },
       { name: "A8", motorisations: [e("3.0 TFSI"), e("4.0 TFSI"), d("3.0 TDI")] },
       { name: "Q2", motorisations: [e("1.0 TFSI"), e("1.5 TFSI"), d("2.0 TDI")] },
@@ -164,13 +168,13 @@ export const BRANDS: Brand[] = [
       { name: "e-tron", motorisations: [ev("e-tron")] },
       { name: "e-tron GT", motorisations: [ev("e-tron GT")] },
       { name: "TT", motorisations: [e("1.8 TFSI"), e("2.0 TFSI"), d("2.0 TDI")] },
-      { name: "R8", motorisations: [e("4.2 V8"), e("5.2 V10")] },
+      { name: "R8", motorisations: [sport(e("4.2 V8")), sport(e("5.2 V10"))] },
     ],
   },
   {
     name: "BMW",
     models: [
-      { name: "Série 1", motorisations: [e("116i/118i"), e("120i"), e("M135i"), d("116d/118d"), d("120d")] },
+      { name: "Série 1", motorisations: [e("116i/118i"), e("120i"), sport(e("M135i")), d("116d/118d"), d("120d")] },
       { name: "Série 2", motorisations: [e("218i/220i"), d("216d/218d/220d")] },
       { name: "Série 3", motorisations: [e("318i/320i"), e("330i"), d("316d/318d/320d"), d("330d"), h("330e")] },
       { name: "Série 4", motorisations: [e("420i/430i"), d("420d/430d")] },
@@ -401,11 +405,11 @@ export const BRANDS: Brand[] = [
   {
     name: "Mini",
     models: [
-      { name: "Cooper", motorisations: [e("One 1.2/1.5"), e("Cooper 1.5"), e("Cooper S 2.0"), d("Cooper D 1.5/2.0")] },
-      { name: "Cabrio", motorisations: [e("Cooper 1.5"), e("Cooper S 2.0"), d("Cooper D 2.0")] },
-      { name: "Countryman", motorisations: [e("Cooper 1.5"), e("Cooper S 2.0"), d("Cooper D 2.0"), h("Cooper SE Plug-in")] },
-      { name: "Clubman", motorisations: [e("Cooper 1.5"), e("Cooper S 2.0"), d("Cooper D 2.0")] },
-      { name: "Paceman", motorisations: [e("Cooper 1.6"), e("Cooper S 1.6"), d("Cooper D 2.0")] },
+      { name: "Cooper", motorisations: [e("One 1.2/1.5"), e("Cooper 1.5"), sport(e("Cooper S 2.0")), d("Cooper D 1.5/2.0")] },
+      { name: "Cabrio", motorisations: [e("Cooper 1.5"), sport(e("Cooper S 2.0")), d("Cooper D 2.0")] },
+      { name: "Countryman", motorisations: [e("Cooper 1.5"), sport(e("Cooper S 2.0")), d("Cooper D 2.0"), h("Cooper SE Plug-in")] },
+      { name: "Clubman", motorisations: [e("Cooper 1.5"), sport(e("Cooper S 2.0")), d("Cooper D 2.0")] },
+      { name: "Paceman", motorisations: [e("Cooper 1.6"), sport(e("Cooper S 1.6")), d("Cooper D 2.0")] },
     ],
   },
   {
@@ -489,8 +493,8 @@ export const BRANDS: Brand[] = [
     models: [
       { name: "Mito", motorisations: [e("1.4"), d("1.3 JTDM")] },
       { name: "Giulietta", motorisations: [e("1.4 TB"), d("1.6/2.0 JTDM")] },
-      { name: "Giulia", motorisations: [e("2.0 Turbo"), d("2.2 JTDM"), e("Quadrifoglio 2.9 V6")] },
-      { name: "Stelvio", motorisations: [e("2.0 Turbo"), d("2.2 JTDM"), e("Quadrifoglio 2.9 V6")] },
+      { name: "Giulia", motorisations: [e("2.0 Turbo"), d("2.2 JTDM"), sport(e("Quadrifoglio 2.9 V6"))] },
+      { name: "Stelvio", motorisations: [e("2.0 Turbo"), d("2.2 JTDM"), sport(e("Quadrifoglio 2.9 V6"))] },
     ],
   },
   {
@@ -515,8 +519,8 @@ export const BRANDS: Brand[] = [
   {
     name: "Porsche",
     models: [
-      { name: "911", motorisations: [e("3.0 Flat-6 Turbo"), e("GT3 4.0")] },
-      { name: "718 Boxster/Cayman", motorisations: [e("2.0/2.5 Turbo"), e("4.0 GT4")] },
+      { name: "911", motorisations: [e("3.0 Flat-6 Turbo"), sport(e("GT3 4.0"))] },
+      { name: "718 Boxster/Cayman", motorisations: [e("2.0/2.5 Turbo"), sport(e("4.0 GT4"))] },
       { name: "Macan", motorisations: [e("2.0/2.9 V6"), ev("Macan Electric")] },
       { name: "Cayenne", motorisations: [e("3.0 V6"), d("3.0 V6 TDI"), h("E-Hybrid")] },
       { name: "Panamera", motorisations: [e("2.9/4.0 V6/V8"), h("E-Hybrid")] },
@@ -606,4 +610,23 @@ export function tierMultiplierFor(brandName?: string): number {
   if (!brandName) return 1;
   const tier = BRAND_TIER[brandName];
   return tier ? TIER_MULTIPLIER[tier] : 1;
+}
+
+/* Majoration finition sportive/performance (S3/RS/GTI/Cooper S/GT3...) —
+   s'ajoute au multiplicateur de marque (ex. Audi premium ×1.35 × sport ×1.25
+   pour une RS3 = ×1.69 sur les pièces). Détectée soit depuis la motorisation
+   choisie manuellement (champ performance), soit automatiquement depuis la
+   plaque via des mots-clés dans le libellé constructeur (voir plate-lookup) —
+   jamais une donnée inventée, juste une heuristique de texte transparente. */
+export const SPORT_MULTIPLIER = 1.25;
+
+const SPORT_KEYWORDS = [
+  "RS", "GTI", "GTi", "GT3", "GT4", "COOPER S", "CUPRA", "M135", "M140", "M2", "M3", "M4", "M5", "M-SPORT",
+  "AMG", "QUADRIFOGLIO", "TYPE R", "VRS", "ST-LINE", "TROPHY", "R-LINE PERFORMANCE", "GTX", "N LINE", " N ",
+];
+
+export function isPerformanceLabel(label?: string): boolean {
+  if (!label) return false;
+  const upper = label.toUpperCase();
+  return SPORT_KEYWORDS.some((kw) => upper.includes(kw));
 }

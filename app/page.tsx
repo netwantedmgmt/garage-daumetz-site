@@ -201,7 +201,7 @@ function LocationMap() {
 /* ---------- Devis instantané (estimation par correspondance mots-clés) ---------- */
 type PlateResult = {
   marque: string; modele: string; motorisation: string; carburant: FuelType; annee: number | null; label: string;
-  vin?: string; kType?: string; engineCode?: string;
+  vin?: string; kType?: string; engineCode?: string; performance?: boolean;
 };
 
 function QuoteEstimator() {
@@ -226,6 +226,7 @@ function QuoteEstimator() {
   const fuel: FuelType | "" = plateResult ? plateResult.carburant : manualFuel;
   const effectiveYear = plateResult ? plateResult.annee ?? undefined : year ? parseInt(year, 10) : undefined;
   const vehicleLabel = plateResult ? plateResult.label : [brand, model, year, motor].filter(Boolean).join(" · ");
+  const performance = plateResult ? !!plateResult.performance : !!motorisations.find((m) => m.label === motor)?.performance;
 
   function onBrandChange(v: string) { setBrand(v); setModel(""); setMotor(""); }
   function onModelChange(v: string) { setModel(v); setMotor(""); }
@@ -245,6 +246,7 @@ function QuoteEstimator() {
       setPlateResult({
         marque: data.marque, modele: data.modele, motorisation: data.motorisation, carburant: data.carburant,
         annee: data.annee, label: data.label, vin: data.vin, kType: data.kType, engineCode: data.engineCode,
+        performance: data.performance,
       });
       setPlateStatus("ok");
       trackEvent("plate_lookup_success", { marque: data.marque });
@@ -258,7 +260,7 @@ function QuoteEstimator() {
     const q = (text ?? problem).trim();
     if (!q) return;
     if (text !== undefined) setProblem(text);
-    const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined, plateResult?.marque || brand || undefined);
+    const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined, plateResult?.marque || brand || undefined, performance);
     setResult(r);
     setSubmitted(true);
     setSendOpen(false);
@@ -292,6 +294,7 @@ function QuoteEstimator() {
           year: effectiveYear,
           fuel: fuel || undefined,
           brand: plateResult?.marque || brand || undefined,
+          performance,
           vin: plateResult?.vin,
           kType: plateResult?.kType,
           engineCode: plateResult?.engineCode,
@@ -786,7 +789,10 @@ export default function Home() {
             </div>
           </div>
           <div className="foot-brand"><Image src="/full-logo-light.png" alt="Garage D'Aumetz" width={128} height={60} /></div>
-          <div className="foot-legal"><span>© 2026 {SITE.name} — {SITE.city} ({SITE.postalCode}), {SITE.region}.</span><span>Site conçu par Netwanted</span></div>
+          <div className="foot-legal">
+            <span>© 2026 {SITE.name} — {SITE.city} ({SITE.postalCode}), {SITE.region}.</span>
+            <span><a href="/mentions-legales">Mentions légales &amp; confidentialité</a> · Site conçu par Netwanted</span>
+          </div>
         </div>
       </footer>
 

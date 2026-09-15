@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SITE } from "../../site";
 import { sendGarageSms } from "../../lib/sms";
+import { rateLimit, clientKey } from "../../lib/rateLimit";
+import { logError } from "../../lib/log";
 
 const clean = (v: unknown, max = 500) =>
   typeof v === "string" ? v.trim().slice(0, max) : "";
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`contact:${clientKey(req)}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -51,13 +57,15 @@ export async function POST(req: NextRequest) {
       }),
     });
     if (!res.ok) {
+      logError("contact.resend", { status: res.status, body: await res.text().catch(() => "") });
       return NextResponse.json({ error: "send_failed" }, { status: 502 });
     }
 
     void sendGarageSms(`GDA — Demande de rappel : ${name}, ${phone}. Besoin : ${need || "—"}.`);
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (e) {
+    logError("contact.resend", { message: e instanceof Error ? e.message : String(e) });
     return NextResponse.json({ error: "send_failed" }, { status: 502 });
   }
 }
