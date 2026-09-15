@@ -6,12 +6,22 @@
 
 import type { FuelType } from "./vehicle-data";
 
-export const HOURLY_RATE = 59; // €/h — taux moyen main d'œuvre garage indépendant
+/* Grille tarifaire réelle communiquée par le garage (affiche atelier, 2026) :
+   T1 Entretien courant (vidange, filtres, freins, pneus, ampoules, échappement,
+   petites interventions) = 60€/h · T2 Diagnostic & mécanique technique
+   (distribution, embrayage, suspension, diagnostic électronique, climatisation)
+   = 70€/h · T3 Intervention lourde & expertise (gros démontage moteur, boîte
+   de vitesses, soudure) = 90€/h.
+   ⚠️ L'affiche du garage indique "HT" dans le titre mais "TTC" en mention basse
+   (contradictoire) — à faire confirmer par le garage. On part sur HT en attendant. */
+export type LaborTier = "T1" | "T2" | "T3";
+export const LABOR_RATES: Record<LaborTier, number> = { T1: 60, T2: 70, T3: 90 };
 
 export type QuoteCategory = {
   id: string;
   label: string;
   keywords: string[];
+  laborTier: LaborTier;
   partsMin: number;
   partsMax: number;
   hoursMin: number;
@@ -19,68 +29,84 @@ export type QuoteCategory = {
   note?: string;
 };
 
+/* Fourchettes pièces : positionnement qualité moyenne-haute (marques reconnues
+   type Bosch/Valeo/Mann/Brembo/TRW, pas premier prix), avec marge — pour
+   concurrencer les garages du secteur sans la sacrifier. Estimations à affiner
+   avec les vrais coûts fournisseur du garage. */
 const CATEGORIES: QuoteCategory[] = [
   {
     id: "vidange", label: "Vidange & entretien",
     keywords: ["vidange", "huile moteur", "huile", "filtre a huile", "niveau d'huile", "niveau huile", "entretien courant", "revision"],
-    partsMin: 55, partsMax: 90, hoursMin: 0.5, hoursMax: 0.8,
+    laborTier: "T1",
+    partsMin: 60, partsMax: 95, hoursMin: 0.5, hoursMax: 0.8,
   },
   {
     id: "frein", label: "Freinage",
     keywords: ["frein", "plaquette", "plaquettes", "disque de frein", "disques de frein", "grince", "crisse", "couine", "pedale de frein", "liquide de frein"],
-    partsMin: 60, partsMax: 130, hoursMin: 1, hoursMax: 1.5,
+    laborTier: "T1",
+    partsMin: 65, partsMax: 160, hoursMin: 1, hoursMax: 1.5,
   },
   {
     id: "distribution", label: "Distribution",
     keywords: ["distribution", "courroie de distribution", "chaine de distribution", "kit distribution", "pompe a eau"],
-    partsMin: 270, partsMax: 550, hoursMin: 3, hoursMax: 5,
+    laborTier: "T2",
+    partsMin: 280, partsMax: 580, hoursMin: 3, hoursMax: 5,
   },
   {
     id: "embrayage", label: "Embrayage",
     keywords: ["embrayage", "patine", "a-coups", "embrayage qui patine"],
-    partsMin: 370, partsMax: 710, hoursMin: 3, hoursMax: 4,
+    laborTier: "T2",
+    partsMin: 380, partsMax: 750, hoursMin: 3, hoursMax: 4,
   },
   {
     id: "diagnostic", label: "Diagnostic / recherche de panne",
     keywords: ["voyant", "voyant moteur", "temoin allume", "bruit bizarre", "bruit etrange", "je ne sais pas", "panne", "perte de puissance", "fume", "fumee"],
+    laborTier: "T2",
     partsMin: 0, partsMax: 0, hoursMin: 0.9, hoursMax: 1.5,
   },
   {
     id: "suspension", label: "Suspension & géométrie",
     keywords: ["suspension", "amortisseur", "amortisseurs", "parallelisme", "geometrie", "vibration au volant", "tire a droite", "tire a gauche", "bruit en virage"],
-    partsMin: 70, partsMax: 170, hoursMin: 1.5, hoursMax: 2.5,
+    laborTier: "T2",
+    partsMin: 80, partsMax: 220, hoursMin: 1.5, hoursMax: 2.5,
   },
   {
     id: "pneu", label: "Pneumatiques (montage / équilibrage)",
     keywords: ["pneu use", "crevaison", "permutation", "equilibrage", "pneu ete"],
+    laborTier: "T1",
     partsMin: 0, partsMax: 0, hoursMin: 0.2, hoursMax: 0.3,
     note: "Hors prix du pneu (variable selon marque et dimension) — montage et équilibrage inclus.",
   },
   {
     id: "pneu_hiver", label: "Pneus hiver (jeu de 4, posés)",
     keywords: ["pneu hiver", "pneus hiver", "neige", "verglas", "hiver"],
-    partsMin: 420, partsMax: 760, hoursMin: 1, hoursMax: 1.2,
+    laborTier: "T1",
+    partsMin: 440, partsMax: 820, hoursMin: 1, hoursMax: 1.2,
     note: "Estimation pour un jeu de 4 pneus hiver posés et équilibrés (citadine/berline courante) — à confirmer selon la dimension exacte.",
   },
   {
     id: "clim", label: "Climatisation",
     keywords: ["climatisation", "clim", "ne refroidit plus", "gaz clim", "recharge clim"],
-    partsMin: 10, partsMax: 75, hoursMin: 0.8, hoursMax: 1.2,
+    laborTier: "T2",
+    partsMin: 25, partsMax: 90, hoursMin: 0.8, hoursMax: 1.2,
   },
   {
     id: "batterie", label: "Batterie & démarrage",
     keywords: ["batterie", "demarreur", "alternateur", "ne demarre pas", "ne demarre plus", "clic clic", "voiture ne demarre pas"],
-    partsMin: 50, partsMax: 230, hoursMin: 0.4, hoursMax: 0.8,
+    laborTier: "T1",
+    partsMin: 90, partsMax: 280, hoursMin: 0.4, hoursMax: 0.8,
   },
   {
     id: "echappement", label: "Échappement",
     keywords: ["echappement", "pot d'echappement", "pot d echappement", "bruit fort au pot", "fuite echappement"],
-    partsMin: 30, partsMax: 230, hoursMin: 1, hoursMax: 2,
+    laborTier: "T1",
+    partsMin: 60, partsMax: 320, hoursMin: 1, hoursMax: 2,
   },
   {
     id: "ampoule", label: "Ampoules & éclairage",
     keywords: ["ampoule", "phare", "feu arriere", "clignotant", "ne s'allume plus", "ne s allume plus"],
-    partsMin: 15, partsMax: 45, hoursMin: 0.2, hoursMax: 0.4,
+    laborTier: "T1",
+    partsMin: 15, partsMax: 55, hoursMin: 0.2, hoursMax: 0.4,
   },
 ];
 
@@ -136,8 +162,9 @@ export function matchQuote(problem: string, year?: number, fuel?: FuelType): Quo
   }
 
   const { partsMin, partsMax, hoursMin, hoursMax } = best;
-  const laborMin = Math.round(hoursMin * HOURLY_RATE);
-  const laborMax = Math.round(hoursMax * HOURLY_RATE);
+  const rate = LABOR_RATES[best.laborTier];
+  const laborMin = Math.round(hoursMin * rate);
+  const laborMax = Math.round(hoursMax * rate);
   let totalMin = partsMin + laborMin;
   let totalMax = partsMax + laborMax;
   let ageNote: string | undefined;
