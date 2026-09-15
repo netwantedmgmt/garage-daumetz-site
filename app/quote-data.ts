@@ -1,8 +1,7 @@
 /* Moteur de devis instantané — correspondance mots-clés (pas d'appel API externe :
    rapide, gratuit, et les prix restent 100% maîtrisés par le garage).
    ⚠️ Tarifs indicatifs à ajuster avec le client — ce sont des ESTIMATIONS, pas
-   des prix contractuels. Le taux horaire et les fourchettes pièces sont à
-   valider/affiner avec le garage (marge voulue, pas de prix excessifs). */
+   des prix contractuels. Fourchettes pièces à valider/affiner avec le garage. */
 
 import type { FuelType } from "./vehicle-data";
 
@@ -11,117 +10,150 @@ import type { FuelType } from "./vehicle-data";
    petites interventions) = 60€/h · T2 Diagnostic & mécanique technique
    (distribution, embrayage, suspension, diagnostic électronique, climatisation)
    = 70€/h · T3 Intervention lourde & expertise (gros démontage moteur, boîte
-   de vitesses, soudure) = 90€/h. Tarifs TTC (confirmé par le garage — définitif
-   à la première facture si finalement HT). */
+   de vitesses, soudure) = 90€/h. Tarifs TTC (confirmé par le garage). */
 export type LaborTier = "T1" | "T2" | "T3";
 export const LABOR_RATES: Record<LaborTier, number> = { T1: 60, T2: 70, T3: 90 };
+
+/* Une ligne de pièce/produit détaillée — jamais affichée au client (écran de
+   résultat volontairement bref), uniquement dans le devis envoyé au garage.
+   optional=true : pièce pas toujours nécessaire (ex. disques si usure
+   constatée) — exclue de la fourchette basse, incluse dans la fourchette
+   haute (scénario le plus complet). Gamme moyenne-haute, marques reconnues,
+   pour concurrencer les garages du secteur sans sacrifier la marge. */
+export type PartLine = { label: string; qty: number; priceMin: number; priceMax: number; optional?: boolean };
 
 export type QuoteCategory = {
   id: string;
   label: string;
   keywords: string[];
   laborTier: LaborTier;
-  partsMin: number;
-  partsMax: number;
   hoursMin: number;
   hoursMax: number;
   note?: string;
-  /* Pièces/produits recommandés + quantités indicatives — jamais affiché au
-     client (garde l'écran de résultat bref), uniquement inclus dans le devis
-     détaillé envoyé au garage. Gamme moyenne-haute, marques reconnues. */
-  detailsGarage?: string;
+  parts: PartLine[];
 };
 
-/* Fourchettes pièces : positionnement qualité moyenne-haute (marques reconnues
-   type Bosch/Valeo/Mann/Brembo/TRW, pas premier prix), avec marge — pour
-   concurrencer les garages du secteur sans la sacrifier. Estimations à affiner
-   avec les vrais coûts fournisseur du garage. */
+function partsRange(parts: PartLine[]): { min: number; max: number } {
+  let min = 0, max = 0;
+  for (const p of parts) {
+    if (!p.optional) min += p.qty * p.priceMin;
+    max += p.qty * p.priceMax;
+  }
+  return { min: Math.round(min), max: Math.round(max) };
+}
+
 const CATEGORIES: QuoteCategory[] = [
   {
     id: "vidange", label: "Vidange & entretien",
     keywords: ["vidange", "huile moteur", "huile", "filtre a huile", "niveau d'huile", "niveau huile", "entretien courant", "revision"],
-    laborTier: "T1",
-    partsMin: 60, partsMax: 95, hoursMin: 0.5, hoursMax: 0.8,
-    detailsGarage: "1x huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, selon préconisation constructeur) + 1x filtre à huile (Bosch / Mann Filter / Purflux). Contrôle niveaux inclus.",
+    laborTier: "T1", hoursMin: 0.5, hoursMax: 0.8,
+    parts: [
+      { label: "Huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, ~5L)", qty: 1, priceMin: 35, priceMax: 55 },
+      { label: "Filtre à huile (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 10, priceMax: 18 },
+      { label: "Joint de vidange", qty: 1, priceMin: 2, priceMax: 5 },
+      { label: "Filtre à air (si contrôle le nécessite)", qty: 1, priceMin: 12, priceMax: 22, optional: true },
+    ],
   },
   {
     id: "frein", label: "Freinage",
     keywords: ["frein", "plaquette", "plaquettes", "disque de frein", "disques de frein", "grince", "crisse", "couine", "pedale de frein", "liquide de frein"],
-    laborTier: "T1",
-    partsMin: 65, partsMax: 160, hoursMin: 1, hoursMax: 1.5,
-    detailsGarage: "1x jeu de plaquettes (avant ou arrière selon diagnostic — Brembo / TRW / Bosch) + 1x paire de disques si usure constatée (Brembo / ATE) + purge liquide de frein si nécessaire.",
+    laborTier: "T1", hoursMin: 1, hoursMax: 1.5,
+    parts: [
+      { label: "Jeu de plaquettes de frein (Brembo / TRW / Bosch)", qty: 1, priceMin: 35, priceMax: 60 },
+      { label: "Liquide de frein DOT4", qty: 1, priceMin: 8, priceMax: 15 },
+      { label: "Paire de disques de frein (Brembo / ATE — si usure constatée)", qty: 1, priceMin: 70, priceMax: 110, optional: true },
+    ],
   },
   {
     id: "distribution", label: "Distribution",
     keywords: ["distribution", "courroie de distribution", "chaine de distribution", "kit distribution", "pompe a eau"],
-    laborTier: "T2",
-    partsMin: 280, partsMax: 580, hoursMin: 3, hoursMax: 5,
-    detailsGarage: "1x kit distribution complet (courroie + galets + tendeur — Gates / Dayco / Contitech) + 1x pompe à eau (SKF / Airtex) + liquide de refroidissement.",
+    laborTier: "T2", hoursMin: 3, hoursMax: 5,
+    parts: [
+      { label: "Kit distribution complet — courroie + galets + tendeur (Gates / Dayco / Contitech)", qty: 1, priceMin: 150, priceMax: 320 },
+      { label: "Pompe à eau (SKF / Airtex)", qty: 1, priceMin: 45, priceMax: 100 },
+      { label: "Liquide de refroidissement", qty: 1, priceMin: 15, priceMax: 25 },
+      { label: "Galet tendeur / accessoires additionnels (si nécessaire)", qty: 1, priceMin: 30, priceMax: 60, optional: true },
+    ],
   },
   {
     id: "embrayage", label: "Embrayage",
     keywords: ["embrayage", "patine", "a-coups", "embrayage qui patine"],
-    laborTier: "T2",
-    partsMin: 380, partsMax: 750, hoursMin: 3, hoursMax: 4,
-    detailsGarage: "1x kit embrayage complet (disque + mécanisme + butée — LuK / Valeo / Sachs) + volant moteur bi-masse si nécessaire au diagnostic (fréquent sur diesel).",
+    laborTier: "T2", hoursMin: 3, hoursMax: 4,
+    parts: [
+      { label: "Kit embrayage complet — disque + mécanisme + butée (LuK / Valeo / Sachs)", qty: 1, priceMin: 180, priceMax: 320 },
+      { label: "Liquide d'embrayage / consommables", qty: 1, priceMin: 10, priceMax: 20 },
+      { label: "Volant moteur bi-masse (fréquent sur diesel, si nécessaire)", qty: 1, priceMin: 180, priceMax: 380, optional: true },
+    ],
   },
   {
     id: "diagnostic", label: "Diagnostic / recherche de panne",
     keywords: ["voyant", "voyant moteur", "temoin allume", "bruit bizarre", "bruit etrange", "je ne sais pas", "panne", "perte de puissance", "fume", "fumee"],
-    laborTier: "T2",
-    partsMin: 0, partsMax: 0, hoursMin: 0.9, hoursMax: 1.5,
-    detailsGarage: "Lecture défauts (valise diagnostic) + recherche de panne. Pièces à définir après identification de la cause.",
+    laborTier: "T2", hoursMin: 0.9, hoursMax: 1.5,
+    note: "Lecture défauts (valise diagnostic) + recherche de panne — pièces à définir après identification de la cause.",
+    parts: [],
   },
   {
     id: "suspension", label: "Suspension & géométrie",
     keywords: ["suspension", "amortisseur", "amortisseurs", "parallelisme", "geometrie", "vibration au volant", "tire a droite", "tire a gauche", "bruit en virage"],
-    laborTier: "T2",
-    partsMin: 80, partsMax: 220, hoursMin: 1.5, hoursMax: 2.5,
-    detailsGarage: "1-2x amortisseur(s) (Monroe / KYB / Sachs) et/ou rotules/biellettes (TRW / Lemförder) selon diagnostic, + réglage géométrie/parallélisme si besoin.",
+    laborTier: "T2", hoursMin: 1.5, hoursMax: 2.5,
+    parts: [
+      { label: "Amortisseur (Monroe / KYB / Sachs)", qty: 2, priceMin: 60, priceMax: 110 },
+      { label: "Rotule / biellette de direction (TRW / Lemförder, si nécessaire)", qty: 1, priceMin: 15, priceMax: 35, optional: true },
+    ],
   },
   {
     id: "pneu", label: "Pneumatiques (montage / équilibrage)",
     keywords: ["pneu use", "crevaison", "permutation", "equilibrage", "pneu ete"],
-    laborTier: "T1",
-    partsMin: 0, partsMax: 0, hoursMin: 0.2, hoursMax: 0.3,
-    note: "Hors prix du pneu (variable selon marque et dimension) — montage et équilibrage inclus.",
-    detailsGarage: "Montage + équilibrage + valve neuve. Marque/dimension du pneu à confirmer avec le client (budget milieu-haut recommandé : Michelin / Continental / Goodyear / Hankook).",
+    laborTier: "T1", hoursMin: 0.2, hoursMax: 0.3,
+    note: "Hors prix du pneu (variable selon marque et dimension, à confirmer avec le client) — montage, équilibrage et valve neuve inclus.",
+    parts: [],
   },
   {
     id: "pneu_hiver", label: "Pneus hiver (jeu de 4, posés)",
     keywords: ["pneu hiver", "pneus hiver", "neige", "verglas", "hiver"],
-    laborTier: "T1",
-    partsMin: 440, partsMax: 820, hoursMin: 1, hoursMax: 1.2,
-    note: "Estimation pour un jeu de 4 pneus hiver posés et équilibrés (citadine/berline courante) — à confirmer selon la dimension exacte.",
-    detailsGarage: "4x pneus hiver milieu-haut de gamme (Michelin / Continental / Goodyear / Hankook selon budget) + montage + équilibrage + valves neuves.",
+    laborTier: "T1", hoursMin: 1, hoursMax: 1.2,
+    note: "Estimation pour un jeu de 4 pneus hiver posés et équilibrés (citadine à SUV) — dimension exacte à confirmer avec le client.",
+    parts: [
+      { label: "Pneu hiver milieu-haut de gamme (Michelin / Continental / Goodyear / Hankook)", qty: 4, priceMin: 65, priceMax: 160 },
+      { label: "Valve neuve", qty: 4, priceMin: 3, priceMax: 5 },
+    ],
   },
   {
     id: "clim", label: "Climatisation",
     keywords: ["climatisation", "clim", "ne refroidit plus", "gaz clim", "recharge clim"],
-    laborTier: "T2",
-    partsMin: 25, partsMax: 90, hoursMin: 0.8, hoursMax: 1.2,
-    detailsGarage: "Recharge gaz réfrigérant (R134a ou R1234yf selon véhicule) + contrôle étanchéité + 1x filtre d'habitacle (Mann Filter / Bosch) si non remplacé récemment.",
+    laborTier: "T2", hoursMin: 0.8, hoursMax: 1.2,
+    parts: [
+      { label: "Recharge gaz réfrigérant (R134a ou R1234yf selon véhicule)", qty: 1, priceMin: 35, priceMax: 70 },
+      { label: "Filtre d'habitacle (Mann Filter / Bosch, si non remplacé récemment)", qty: 1, priceMin: 10, priceMax: 20, optional: true },
+    ],
   },
   {
     id: "batterie", label: "Batterie & démarrage",
     keywords: ["batterie", "demarreur", "alternateur", "ne demarre pas", "ne demarre plus", "clic clic", "voiture ne demarre pas"],
-    laborTier: "T1",
-    partsMin: 90, partsMax: 280, hoursMin: 0.4, hoursMax: 0.8,
-    detailsGarage: "1x batterie (Bosch / Varta / Banner, capacité selon véhicule) et/ou alternateur/démarreur échange standard (Valeo / Bosch) selon diagnostic.",
+    laborTier: "T1", hoursMin: 0.4, hoursMax: 0.8,
+    parts: [
+      { label: "Batterie (Bosch / Varta / Banner, capacité selon véhicule)", qty: 1, priceMin: 90, priceMax: 180 },
+      { label: "Alternateur ou démarreur échange standard (Valeo / Bosch, si diagnostic le confirme)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
+    ],
   },
   {
     id: "echappement", label: "Échappement",
     keywords: ["echappement", "pot d'echappement", "pot d echappement", "bruit fort au pot", "fuite echappement"],
-    laborTier: "T1",
-    partsMin: 60, partsMax: 320, hoursMin: 1, hoursMax: 2,
-    detailsGarage: "1x silencieux ou tronçon de ligne d'échappement selon zone concernée (Bosal / Walker / Fonos) + colliers/joints.",
+    laborTier: "T1", hoursMin: 1, hoursMax: 2,
+    parts: [
+      { label: "Silencieux ou tronçon de ligne (Bosal / Walker / Fonos)", qty: 1, priceMin: 80, priceMax: 160 },
+      { label: "Collier(s) + joint(s)", qty: 1, priceMin: 8, priceMax: 15 },
+      { label: "Ligne d'échappement complète (si corrosion étendue)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
+    ],
   },
   {
     id: "ampoule", label: "Ampoules & éclairage",
     keywords: ["ampoule", "phare", "feu arriere", "clignotant", "ne s'allume plus", "ne s allume plus"],
-    laborTier: "T1",
-    detailsGarage: "1-2x ampoule(s) homologuée(s) (Philips / Osram) selon zone concernée.",
-    partsMin: 15, partsMax: 55, hoursMin: 0.2, hoursMax: 0.4,
+    laborTier: "T1", hoursMin: 0.2, hoursMax: 0.4,
+    parts: [
+      { label: "Ampoule homologuée (Philips / Osram)", qty: 1, priceMin: 8, priceMax: 25 },
+      { label: "Kit LED homologué (option upgrade)", qty: 1, priceMin: 30, priceMax: 50, optional: true },
+    ],
   },
 ];
 
@@ -163,25 +195,21 @@ const COMBUSTION_ONLY = new Set(["vidange", "distribution", "embrayage", "echapp
    indicative et transparente, pas une donnée constructeur précise. */
 const DIESEL_UPCHARGE = new Set(["distribution", "embrayage", "echappement"]);
 
-export function matchQuote(problem: string, year?: number, fuel?: FuelType): QuoteResult | null {
-  if (!problem || !problem.trim()) return null;
-  let best: QuoteCategory | null = null;
-  let bestScore = 0;
-  for (const cat of CATEGORIES) {
-    const s = scoreCategory(problem, cat);
-    if (s > bestScore) { bestScore = s; best = cat; }
-  }
-  if (!best || bestScore === 0) return null;
-
-  if (fuel === "electrique" && COMBUSTION_ONLY.has(best.id)) {
+/* Calcul du chiffrage pour une catégorie déjà identifiée — partagé entre
+   matchQuote (recherche client par mots-clés) et la route /api/send-quote
+   (recalcul serveur pour ne jamais faire confiance à des chiffres envoyés
+   par le client). Seule source de vérité pour les prix. */
+export function priceCategory(category: QuoteCategory, year?: number, fuel?: FuelType): QuoteResult {
+  if (fuel === "electrique" && COMBUSTION_ONLY.has(category.id)) {
     return {
-      category: best, partsMin: 0, partsMax: 0, laborMin: 0, laborMax: 0,
+      category, partsMin: 0, partsMax: 0, laborMin: 0, laborMax: 0,
       totalMin: 0, totalMax: 0, hoursMin: 0, hoursMax: 0, notApplicable: true,
     };
   }
 
-  const { partsMin, partsMax, hoursMin, hoursMax } = best;
-  const rate = LABOR_RATES[best.laborTier];
+  const { min: partsMin, max: partsMax } = partsRange(category.parts);
+  const { hoursMin, hoursMax } = category;
+  const rate = LABOR_RATES[category.laborTier];
   const laborMin = Math.round(hoursMin * rate);
   const laborMax = Math.round(hoursMax * rate);
   let totalMin = partsMin + laborMin;
@@ -200,12 +228,24 @@ export function matchQuote(problem: string, year?: number, fuel?: FuelType): Quo
     }
   }
 
-  if (fuel === "diesel" && DIESEL_UPCHARGE.has(best.id)) {
+  if (fuel === "diesel" && DIESEL_UPCHARGE.has(category.id)) {
     totalMax = Math.round(totalMax * 1.1);
     fuelNote = "Diesel : pièces généralement plus coûteuses (turbo, injection HP) — fourchette haute majorée de 10 %.";
   }
 
-  return { category: best, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote };
+  return { category, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote };
+}
+
+export function matchQuote(problem: string, year?: number, fuel?: FuelType): QuoteResult | null {
+  if (!problem || !problem.trim()) return null;
+  let best: QuoteCategory | null = null;
+  let bestScore = 0;
+  for (const cat of CATEGORIES) {
+    const s = scoreCategory(problem, cat);
+    if (s > bestScore) { bestScore = s; best = cat; }
+  }
+  if (!best || bestScore === 0) return null;
+  return priceCategory(best, year, fuel);
 }
 
 export type FrequentSearch = { label: string; query: string; featured?: boolean };

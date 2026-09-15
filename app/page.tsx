@@ -283,11 +283,8 @@ function QuoteEstimator() {
           vehicleLabel,
           problem,
           categoryId: result.category.id,
-          partsMin: result.partsMin, partsMax: result.partsMax,
-          laborMin: result.laborMin, laborMax: result.laborMax,
-          totalMin: result.totalMin, totalMax: result.totalMax,
-          hoursMin: result.hoursMin, hoursMax: result.hoursMax,
-          ageNote: result.ageNote, fuelNote: result.fuelNote,
+          year: effectiveYear,
+          fuel: fuel || undefined,
         }),
       });
       if (res.ok) { setSendState("ok"); trackEvent("quote_send_success", { category: result.category.id }); }
