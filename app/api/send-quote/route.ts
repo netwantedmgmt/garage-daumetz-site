@@ -33,6 +33,13 @@ function buildEmailHtml(opts: {
   const { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode } = opts;
   const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, partsTotal, grandTotal } = gq;
 
+  // Lien de recherche direct (k-type + code moteur + prestation) : amène le
+  // garage droit sur les vraies pages produit Autodoc/PiecesAuto-Pro/Mister
+  // Auto pour ce véhicule exact — aucune référence inventée, juste une
+  // recherche pré-remplie avec les bons identifiants.
+  const searchQuery = [kType, engineCode, category.label].filter(Boolean).join(" ");
+  const searchUrl = searchQuery ? `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}` : undefined;
+
   const techBlock = (vin || kType || engineCode)
     ? `
       <div style="background:#f0f7ff;border:1px solid #cfe3fb;border-radius:8px;padding:12px 14px;margin-bottom:20px;">
@@ -43,6 +50,7 @@ function buildEmailHtml(opts: {
           ${engineCode ? `Code moteur : <b>${esc(engineCode)}</b>` : ""}
         </div>
         <div style="font-size:11.5px;color:#5b7ba3;margin-top:6px;">À coller dans votre logiciel fournisseur habituel pour obtenir les références exactes des pièces ci-dessous.</div>
+        ${searchUrl ? `<div style="margin-top:10px;"><a href="${esc(searchUrl)}" style="display:inline-block;background:#2563a8;color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;padding:8px 14px;border-radius:6px;">🔍 Voir les pièces exactes pour ce véhicule →</a></div>` : ""}
       </div>`
     : "";
 
@@ -142,6 +150,9 @@ function buildEmailText(opts: {
     vin ? `VIN : ${vin}` : null,
     kType ? `K-type (TecDoc) : ${kType}` : null,
     engineCode ? `Code moteur : ${engineCode}` : null,
+    (kType || engineCode)
+      ? `Rechercher les pièces exactes : https://www.google.com/search?q=${encodeURIComponent([kType, engineCode, category.label].filter(Boolean).join(" "))}`
+      : null,
     ``, `PROBLÈME DÉCRIT`, problem,
     ``, `PRESTATION IDENTIFIÉE : ${category.label}`,
     ...(requiredParts.length ? requiredParts.map(lineTxt) : [category.note || "Pas de pièce systématique — à définir au diagnostic."]),
