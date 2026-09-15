@@ -258,7 +258,7 @@ function QuoteEstimator() {
     const q = (text ?? problem).trim();
     if (!q) return;
     if (text !== undefined) setProblem(text);
-    const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined);
+    const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined, plateResult?.marque || brand || undefined);
     setResult(r);
     setSubmitted(true);
     setSendOpen(false);
@@ -291,6 +291,7 @@ function QuoteEstimator() {
           categoryId: result.category.id,
           year: effectiveYear,
           fuel: fuel || undefined,
+          brand: plateResult?.marque || brand || undefined,
           vin: plateResult?.vin,
           kType: plateResult?.kType,
           engineCode: plateResult?.engineCode,

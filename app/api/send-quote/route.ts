@@ -191,19 +191,20 @@ export async function POST(req: NextRequest) {
   const vin = clean(body.vin, 20) || undefined;
   const kType = clean(body.kType, 20) || undefined;
   const engineCode = clean(body.engineCode, 30) || undefined;
+  const brand = clean(body.brand, 60) || undefined;
 
   if (!name || !phone || !problem || !categoryId) {
     return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
   }
 
   // Le chiffrage est TOUJOURS recalculé côté serveur à partir de l'id de
-  // catégorie + année/carburant — jamais de prix envoyé par le client, pour
-  // que le garage reçoive un devis fiable et non falsifiable.
+  // catégorie + année/carburant/marque — jamais de prix envoyé par le client,
+  // pour que le garage reçoive un devis fiable et non falsifiable.
   const category = getCategoryById(categoryId);
   if (!category) {
     return NextResponse.json({ error: "invalid_category" }, { status: 400 });
   }
-  const gq = garageQuote(category, year, fuel);
+  const gq = garageQuote(category, year, fuel, brand);
   if (gq.notApplicable) {
     return NextResponse.json({ error: "not_applicable" }, { status: 400 });
   }

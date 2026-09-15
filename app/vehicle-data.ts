@@ -577,3 +577,33 @@ export function motorisationsFor(brandName: string, modelName: string): Motorisa
   const model = BRANDS.find((b) => b.name === brandName)?.models.find((m) => m.name === modelName);
   return model?.motorisations ?? AUTRE_MOT;
 }
+
+/* Positionnement gamme par marque — les pièces premium/sport coûtent
+   structurellement plus cher (huile plus haut de gamme et en plus grande
+   quantité, pièces d'origine plus chères, standards constructeur plus
+   exigeants). La main d'œuvre reste le tarif réel du garage (identique
+   pour tous), seul le prix des PIÈCES est ajusté par ce multiplicateur.
+   Classement volontairement large par marque (pas par finition/moteur —
+   distinguer une RS3 d'une A3 de base demanderait une donnée qu'on n'a
+   pas de façon fiable) ; à affiner avec le garage si besoin. */
+export type VehicleTier = "eco" | "standard" | "premium" | "luxe";
+
+const BRAND_TIER: Record<string, VehicleTier> = {
+  Dacia: "eco",
+  Peugeot: "standard", Renault: "standard", Citroën: "standard", Volkswagen: "standard",
+  Ford: "standard", Opel: "standard", Fiat: "standard", Toyota: "standard", Nissan: "standard",
+  Seat: "standard", Škoda: "standard", Hyundai: "standard", Kia: "standard", Mazda: "standard",
+  Honda: "standard", Smart: "standard", Suzuki: "standard", MG: "standard",
+  Audi: "premium", BMW: "premium", "Mercedes-Benz": "premium", Volvo: "premium", Mini: "premium",
+  "DS Automobiles": "premium", "Alfa Romeo": "premium", Cupra: "premium", Alpine: "premium",
+  Lexus: "premium", Jaguar: "premium", Subaru: "premium", Jeep: "premium", Tesla: "premium",
+  Porsche: "luxe", "Land Rover": "luxe",
+};
+
+const TIER_MULTIPLIER: Record<VehicleTier, number> = { eco: 0.9, standard: 1, premium: 1.35, luxe: 1.7 };
+
+export function tierMultiplierFor(brandName?: string): number {
+  if (!brandName) return 1;
+  const tier = BRAND_TIER[brandName];
+  return tier ? TIER_MULTIPLIER[tier] : 1;
+}
