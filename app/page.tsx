@@ -199,7 +199,10 @@ function LocationMap() {
 }
 
 /* ---------- Devis instantané (estimation par correspondance mots-clés) ---------- */
-type PlateResult = { marque: string; modele: string; motorisation: string; carburant: FuelType; annee: number | null; label: string };
+type PlateResult = {
+  marque: string; modele: string; motorisation: string; carburant: FuelType; annee: number | null; label: string;
+  vin?: string; kType?: string; engineCode?: string;
+};
 
 function QuoteEstimator() {
   const [problem, setProblem] = useState("");
@@ -239,7 +242,10 @@ function QuoteEstimator() {
       if (res.status === 404) { setPlateStatus("notfound"); setPlateResult(null); return; }
       if (!res.ok) { setPlateStatus("error"); setPlateResult(null); return; }
       const data = await res.json();
-      setPlateResult({ marque: data.marque, modele: data.modele, motorisation: data.motorisation, carburant: data.carburant, annee: data.annee, label: data.label });
+      setPlateResult({
+        marque: data.marque, modele: data.modele, motorisation: data.motorisation, carburant: data.carburant,
+        annee: data.annee, label: data.label, vin: data.vin, kType: data.kType, engineCode: data.engineCode,
+      });
       setPlateStatus("ok");
       trackEvent("plate_lookup_success", { marque: data.marque });
     } catch {
@@ -285,6 +291,9 @@ function QuoteEstimator() {
           categoryId: result.category.id,
           year: effectiveYear,
           fuel: fuel || undefined,
+          vin: plateResult?.vin,
+          kType: plateResult?.kType,
+          engineCode: plateResult?.engineCode,
         }),
       });
       if (res.ok) { setSendState("ok"); trackEvent("quote_send_success", { category: result.category.id }); }

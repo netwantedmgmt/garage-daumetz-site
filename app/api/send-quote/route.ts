@@ -28,9 +28,23 @@ function lineRowsHtml(lines: PriceLine[], variant: "required" | "optional" | "su
 
 function buildEmailHtml(opts: {
   name: string; phone: string; email: string; vehicleLabel: string; problem: string; gq: GarageQuote;
+  vin?: string; kType?: string; engineCode?: string;
 }): string {
-  const { name, phone, email, vehicleLabel, problem, gq } = opts;
+  const { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode } = opts;
   const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, partsTotal, grandTotal } = gq;
+
+  const techBlock = (vin || kType || engineCode)
+    ? `
+      <div style="background:#f0f7ff;border:1px solid #cfe3fb;border-radius:8px;padding:12px 14px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2563a8;margin-bottom:6px;">Identifiants techniques — pour référence pièces exacte</div>
+        <div style="font-size:13px;color:#111;line-height:1.7;">
+          ${vin ? `VIN : <b>${esc(vin)}</b><br/>` : ""}
+          ${kType ? `K-type (TecDoc) : <b>${esc(kType)}</b><br/>` : ""}
+          ${engineCode ? `Code moteur : <b>${esc(engineCode)}</b>` : ""}
+        </div>
+        <div style="font-size:11.5px;color:#5b7ba3;margin-top:6px;">À coller dans votre logiciel fournisseur habituel pour obtenir les références exactes des pièces ci-dessous.</div>
+      </div>`
+    : "";
 
   const noPartsRow = requiredParts.length === 0
     ? `<tr><td colspan="4" style="padding:9px 12px;color:#666;font-size:13px;font-style:italic;">${esc(category.note || "Pas de pièce systématique — à définir au diagnostic.")}</td></tr>`
@@ -67,6 +81,8 @@ function buildEmailHtml(opts: {
           </td>
         </tr>
       </table>
+
+      ${techBlock}
 
       <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#999;margin-bottom:6px;">Problème décrit</div>
       <div style="font-size:13.5px;color:#111;background:#f7f7f7;border-radius:8px;padding:10px 12px;margin-bottom:20px;">${esc(problem)}</div>
@@ -112,14 +128,20 @@ function buildEmailHtml(opts: {
 
 function buildEmailText(opts: {
   name: string; phone: string; email: string; vehicleLabel: string; problem: string; gq: GarageQuote;
+  vin?: string; kType?: string; engineCode?: string;
 }): string {
-  const { name, phone, email, vehicleLabel, problem, gq } = opts;
+  const { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode } = opts;
   const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, partsTotal, grandTotal } = gq;
   const lineTxt = (l: PriceLine) => `- ${l.label} — x${l.qty} — ${l.unitPrice} € — sous-total ${l.subtotal} €`;
   return [
     `Nouveau devis envoyé depuis le site — prix de référence prêts à commander (à confirmer au diagnostic).`,
     ``, `CLIENT`, `Nom : ${name}`, `Téléphone : ${phone}`, email ? `Email : ${email}` : null,
     ``, `VÉHICULE`, vehicleLabel || "Non renseigné",
+    (vin || kType || engineCode) ? `` : null,
+    (vin || kType || engineCode) ? `IDENTIFIANTS TECHNIQUES (pour référence pièces exacte via votre logiciel fournisseur) :` : null,
+    vin ? `VIN : ${vin}` : null,
+    kType ? `K-type (TecDoc) : ${kType}` : null,
+    engineCode ? `Code moteur : ${engineCode}` : null,
     ``, `PROBLÈME DÉCRIT`, problem,
     ``, `PRESTATION IDENTIFIÉE : ${category.label}`,
     ...(requiredParts.length ? requiredParts.map(lineTxt) : [category.note || "Pas de pièce systématique — à définir au diagnostic."]),
@@ -155,6 +177,9 @@ export async function POST(req: NextRequest) {
   const fuel: FuelType | undefined = ["essence", "diesel", "hybride", "electrique"].includes(fuelRaw)
     ? (fuelRaw as FuelType)
     : undefined;
+  const vin = clean(body.vin, 20) || undefined;
+  const kType = clean(body.kType, 20) || undefined;
+  const engineCode = clean(body.engineCode, 30) || undefined;
 
   if (!name || !phone || !problem || !categoryId) {
     return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
@@ -180,7 +205,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
 
-  const emailOpts = { name, phone, email, vehicleLabel, problem, gq };
+  const emailOpts = { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode };
 
   try {
     const res = await fetch("https://api.resend.com/emails", {

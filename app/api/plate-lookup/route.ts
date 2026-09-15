@@ -103,6 +103,14 @@ export async function GET(req: NextRequest) {
   const marque = titleCase(marqueRaw);
   const label = [marque, modele, motorisation, annee].filter(Boolean).join(" · ");
 
+  // Identifiants techniques précis (VIN, k-type TecDoc, code moteur) — jamais
+  // utilisés pour deviner une référence pièce nous-mêmes (trop risqué de se
+  // tromper), mais transmis au garage pour qu'il les colle directement dans
+  // son propre logiciel fournisseur et obtienne les vraies références en 10s.
+  const vin = firstKnown(data.AWN_VIN);
+  const kType = firstKnown(data.AWN_k_type);
+  const engineCode = firstKnown(data.AWN_code_moteur);
+
   return NextResponse.json({
     ok: true,
     marque,
@@ -111,5 +119,8 @@ export async function GET(req: NextRequest) {
     carburant,
     annee,
     label,
+    vin: vin || undefined,
+    kType: kType || undefined,
+    engineCode: engineCode || undefined,
   });
 }
