@@ -11,9 +11,8 @@ import type { FuelType } from "./vehicle-data";
    petites interventions) = 60€/h · T2 Diagnostic & mécanique technique
    (distribution, embrayage, suspension, diagnostic électronique, climatisation)
    = 70€/h · T3 Intervention lourde & expertise (gros démontage moteur, boîte
-   de vitesses, soudure) = 90€/h.
-   ⚠️ L'affiche du garage indique "HT" dans le titre mais "TTC" en mention basse
-   (contradictoire) — à faire confirmer par le garage. On part sur HT en attendant. */
+   de vitesses, soudure) = 90€/h. Tarifs TTC (confirmé par le garage — définitif
+   à la première facture si finalement HT). */
 export type LaborTier = "T1" | "T2" | "T3";
 export const LABOR_RATES: Record<LaborTier, number> = { T1: 60, T2: 70, T3: 90 };
 
@@ -27,6 +26,10 @@ export type QuoteCategory = {
   hoursMin: number;
   hoursMax: number;
   note?: string;
+  /* Pièces/produits recommandés + quantités indicatives — jamais affiché au
+     client (garde l'écran de résultat bref), uniquement inclus dans le devis
+     détaillé envoyé au garage. Gamme moyenne-haute, marques reconnues. */
+  detailsGarage?: string;
 };
 
 /* Fourchettes pièces : positionnement qualité moyenne-haute (marques reconnues
@@ -39,36 +42,42 @@ const CATEGORIES: QuoteCategory[] = [
     keywords: ["vidange", "huile moteur", "huile", "filtre a huile", "niveau d'huile", "niveau huile", "entretien courant", "revision"],
     laborTier: "T1",
     partsMin: 60, partsMax: 95, hoursMin: 0.5, hoursMax: 0.8,
+    detailsGarage: "1x huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, selon préconisation constructeur) + 1x filtre à huile (Bosch / Mann Filter / Purflux). Contrôle niveaux inclus.",
   },
   {
     id: "frein", label: "Freinage",
     keywords: ["frein", "plaquette", "plaquettes", "disque de frein", "disques de frein", "grince", "crisse", "couine", "pedale de frein", "liquide de frein"],
     laborTier: "T1",
     partsMin: 65, partsMax: 160, hoursMin: 1, hoursMax: 1.5,
+    detailsGarage: "1x jeu de plaquettes (avant ou arrière selon diagnostic — Brembo / TRW / Bosch) + 1x paire de disques si usure constatée (Brembo / ATE) + purge liquide de frein si nécessaire.",
   },
   {
     id: "distribution", label: "Distribution",
     keywords: ["distribution", "courroie de distribution", "chaine de distribution", "kit distribution", "pompe a eau"],
     laborTier: "T2",
     partsMin: 280, partsMax: 580, hoursMin: 3, hoursMax: 5,
+    detailsGarage: "1x kit distribution complet (courroie + galets + tendeur — Gates / Dayco / Contitech) + 1x pompe à eau (SKF / Airtex) + liquide de refroidissement.",
   },
   {
     id: "embrayage", label: "Embrayage",
     keywords: ["embrayage", "patine", "a-coups", "embrayage qui patine"],
     laborTier: "T2",
     partsMin: 380, partsMax: 750, hoursMin: 3, hoursMax: 4,
+    detailsGarage: "1x kit embrayage complet (disque + mécanisme + butée — LuK / Valeo / Sachs) + volant moteur bi-masse si nécessaire au diagnostic (fréquent sur diesel).",
   },
   {
     id: "diagnostic", label: "Diagnostic / recherche de panne",
     keywords: ["voyant", "voyant moteur", "temoin allume", "bruit bizarre", "bruit etrange", "je ne sais pas", "panne", "perte de puissance", "fume", "fumee"],
     laborTier: "T2",
     partsMin: 0, partsMax: 0, hoursMin: 0.9, hoursMax: 1.5,
+    detailsGarage: "Lecture défauts (valise diagnostic) + recherche de panne. Pièces à définir après identification de la cause.",
   },
   {
     id: "suspension", label: "Suspension & géométrie",
     keywords: ["suspension", "amortisseur", "amortisseurs", "parallelisme", "geometrie", "vibration au volant", "tire a droite", "tire a gauche", "bruit en virage"],
     laborTier: "T2",
     partsMin: 80, partsMax: 220, hoursMin: 1.5, hoursMax: 2.5,
+    detailsGarage: "1-2x amortisseur(s) (Monroe / KYB / Sachs) et/ou rotules/biellettes (TRW / Lemförder) selon diagnostic, + réglage géométrie/parallélisme si besoin.",
   },
   {
     id: "pneu", label: "Pneumatiques (montage / équilibrage)",
@@ -76,6 +85,7 @@ const CATEGORIES: QuoteCategory[] = [
     laborTier: "T1",
     partsMin: 0, partsMax: 0, hoursMin: 0.2, hoursMax: 0.3,
     note: "Hors prix du pneu (variable selon marque et dimension) — montage et équilibrage inclus.",
+    detailsGarage: "Montage + équilibrage + valve neuve. Marque/dimension du pneu à confirmer avec le client (budget milieu-haut recommandé : Michelin / Continental / Goodyear / Hankook).",
   },
   {
     id: "pneu_hiver", label: "Pneus hiver (jeu de 4, posés)",
@@ -83,32 +93,41 @@ const CATEGORIES: QuoteCategory[] = [
     laborTier: "T1",
     partsMin: 440, partsMax: 820, hoursMin: 1, hoursMax: 1.2,
     note: "Estimation pour un jeu de 4 pneus hiver posés et équilibrés (citadine/berline courante) — à confirmer selon la dimension exacte.",
+    detailsGarage: "4x pneus hiver milieu-haut de gamme (Michelin / Continental / Goodyear / Hankook selon budget) + montage + équilibrage + valves neuves.",
   },
   {
     id: "clim", label: "Climatisation",
     keywords: ["climatisation", "clim", "ne refroidit plus", "gaz clim", "recharge clim"],
     laborTier: "T2",
     partsMin: 25, partsMax: 90, hoursMin: 0.8, hoursMax: 1.2,
+    detailsGarage: "Recharge gaz réfrigérant (R134a ou R1234yf selon véhicule) + contrôle étanchéité + 1x filtre d'habitacle (Mann Filter / Bosch) si non remplacé récemment.",
   },
   {
     id: "batterie", label: "Batterie & démarrage",
     keywords: ["batterie", "demarreur", "alternateur", "ne demarre pas", "ne demarre plus", "clic clic", "voiture ne demarre pas"],
     laborTier: "T1",
     partsMin: 90, partsMax: 280, hoursMin: 0.4, hoursMax: 0.8,
+    detailsGarage: "1x batterie (Bosch / Varta / Banner, capacité selon véhicule) et/ou alternateur/démarreur échange standard (Valeo / Bosch) selon diagnostic.",
   },
   {
     id: "echappement", label: "Échappement",
     keywords: ["echappement", "pot d'echappement", "pot d echappement", "bruit fort au pot", "fuite echappement"],
     laborTier: "T1",
     partsMin: 60, partsMax: 320, hoursMin: 1, hoursMax: 2,
+    detailsGarage: "1x silencieux ou tronçon de ligne d'échappement selon zone concernée (Bosal / Walker / Fonos) + colliers/joints.",
   },
   {
     id: "ampoule", label: "Ampoules & éclairage",
     keywords: ["ampoule", "phare", "feu arriere", "clignotant", "ne s'allume plus", "ne s allume plus"],
     laborTier: "T1",
+    detailsGarage: "1-2x ampoule(s) homologuée(s) (Philips / Osram) selon zone concernée.",
     partsMin: 15, partsMax: 55, hoursMin: 0.2, hoursMax: 0.4,
   },
 ];
+
+export function getCategoryById(id: string): QuoteCategory | undefined {
+  return CATEGORIES.find((c) => c.id === id);
+}
 
 function normalize(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");

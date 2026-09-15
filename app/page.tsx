@@ -217,6 +217,9 @@ function QuoteEstimator() {
   const [plateStatus, setPlateStatus] = useState<"idle" | "loading" | "ok" | "notfound" | "error">("idle");
   const [plateResult, setPlateResult] = useState<PlateResult | null>(null);
 
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sendState, setSendState] = useState<"idle" | "sending" | "ok" | "err" | "unconfigured">("idle");
+
   const fuel: FuelType | "" = plateResult ? plateResult.carburant : manualFuel;
   const effectiveYear = plateResult ? plateResult.annee ?? undefined : year ? parseInt(year, 10) : undefined;
   const vehicleLabel = plateResult ? plateResult.label : [brand, model, year, motor].filter(Boolean).join(" · ");
@@ -252,11 +255,48 @@ function QuoteEstimator() {
     const r = matchQuote(q, effectiveYear && !Number.isNaN(effectiveYear) ? effectiveYear : undefined, fuel || undefined);
     setResult(r);
     setSubmitted(true);
+    setSendOpen(false);
+    setSendState("idle");
     trackEvent("quote_estimate", { matched: r ? r.category.id : "none", brand: plateResult?.marque || brand, fuel });
   }
 
   function onSubmit(e: React.FormEvent) { e.preventDefault(); runEstimate(); }
   function onChip(query: string, label: string) { trackEvent("quote_chip_click", { label }); runEstimate(query); }
+
+  async function onSendQuote(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!result || result.notApplicable) return;
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    if (fd.get("company")) return;
+    setSendState("sending");
+    trackEvent("quote_send_submit", { category: result.category.id });
+    try {
+      const res = await fetch("/api/send-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fd.get("name"),
+          phone: fd.get("phone"),
+          email: fd.get("email"),
+          company: fd.get("company"),
+          vehicleLabel,
+          problem,
+          categoryId: result.category.id,
+          partsMin: result.partsMin, partsMax: result.partsMax,
+          laborMin: result.laborMin, laborMax: result.laborMax,
+          totalMin: result.totalMin, totalMax: result.totalMax,
+          hoursMin: result.hoursMin, hoursMax: result.hoursMax,
+          ageNote: result.ageNote, fuelNote: result.fuelNote,
+        }),
+      });
+      if (res.ok) { setSendState("ok"); trackEvent("quote_send_success", { category: result.category.id }); }
+      else if (res.status === 503) setSendState("unconfigured");
+      else setSendState("err");
+    } catch {
+      setSendState("err");
+    }
+  }
 
   return (
     <section className="section quote" id="devis-instantane">
@@ -353,10 +393,35 @@ function QuoteEstimator() {
                 {result.category.note && <p className="qresult-note">{result.category.note}</p>}
                 {result.ageNote && <p className="qresult-note">{result.ageNote}</p>}
                 {result.fuelNote && <p className="qresult-note">{result.fuelNote}</p>}
-                <div className="qresult-cta">
-                  <button className="btn btn-red" onClick={() => goVroomly("quote_" + result.category.id)}>Réserver ce créneau <span className="btn-arrow">→</span></button>
-                  <a className="btn btn-outline" href="#contact">Être rappelé</a>
-                </div>
+
+                {sendState === "ok" ? (
+                  <div className="form-success" role="status">
+                    <span className="form-success-ic"><IconCheck width={22} height={22} /></span>
+                    <b>Devis envoyé au garage&nbsp;!</b>
+                    <span>On vous recontacte rapidement pour confirmer votre créneau.</span>
+                  </div>
+                ) : sendOpen ? (
+                  <form className="qsend-form" onSubmit={onSendQuote} noValidate>
+                    <div className="field"><span>Nom *</span><input name="name" type="text" required autoComplete="name" placeholder="Votre nom" /></div>
+                    <div className="field"><span>Téléphone *</span><input name="phone" type="tel" required autoComplete="tel" placeholder="06 12 34 56 78" /></div>
+                    <div className="field"><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="Optionnel" /></div>
+                    <input type="text" name="company" tabIndex={-1} autoComplete="off" className="hp" aria-hidden />
+                    <div className="qsend-actions">
+                      <button className="btn btn-red" type="submit" disabled={sendState === "sending"}>{sendState === "sending" ? "Envoi…" : <>Envoyer ce devis au garage <span className="btn-arrow">→</span></>}</button>
+                      <button className="btn btn-outline" type="button" onClick={() => setSendOpen(false)}>Annuler</button>
+                    </div>
+                    {sendState === "err" && <p className="form-msg form-err">Une erreur est survenue. Appelez-nous au {SITE.phone}.</p>}
+                    {sendState === "unconfigured" && <p className="form-msg form-err">Envoi bientôt actif. En attendant, appelez le {SITE.phone}.</p>}
+                  </form>
+                ) : (
+                  <div className="qresult-cta">
+                    <button className="btn btn-red" onClick={() => { setSendOpen(true); trackEvent("quote_send_open", { category: result.category.id }); }}>Envoyer ce devis au garage <span className="btn-arrow">→</span></button>
+                    <a className="btn btn-outline" href="#contact">Être rappelé</a>
+                  </div>
+                )}
+                {!sendOpen && sendState !== "ok" && (
+                  <button type="button" className="qresult-vroomly-link" onClick={() => goVroomly("quote_" + result.category.id)}>ou réserver directement en ligne via Vroomly →</button>
+                )}
                 <p className="qresult-disclaimer">Estimation indicative à partir de tarifs moyens constatés, confirmée après diagnostic en atelier.</p>
               </div>
             ) : result?.notApplicable ? (
