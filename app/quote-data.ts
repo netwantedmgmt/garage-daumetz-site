@@ -51,7 +51,7 @@ const CATEGORIES: QuoteCategory[] = [
       { label: "Huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, ~5L)", qty: 1, priceMin: 35, priceMax: 55 },
       { label: "Filtre à huile (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 10, priceMax: 18 },
       { label: "Joint de vidange", qty: 1, priceMin: 2, priceMax: 5 },
-      { label: "Filtre à air (si contrôle le nécessite)", qty: 1, priceMin: 12, priceMax: 22, optional: true },
+      { label: "Filtre à air (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 12, priceMax: 22, optional: true },
     ],
   },
   {
@@ -61,7 +61,7 @@ const CATEGORIES: QuoteCategory[] = [
     parts: [
       { label: "Jeu de plaquettes de frein (Brembo / TRW / Bosch)", qty: 1, priceMin: 35, priceMax: 60 },
       { label: "Liquide de frein DOT4", qty: 1, priceMin: 8, priceMax: 15 },
-      { label: "Paire de disques de frein (Brembo / ATE — si usure constatée)", qty: 1, priceMin: 70, priceMax: 110, optional: true },
+      { label: "Paire de disques de frein (Brembo / ATE)", qty: 1, priceMin: 70, priceMax: 110, optional: true },
     ],
   },
   {
@@ -72,7 +72,7 @@ const CATEGORIES: QuoteCategory[] = [
       { label: "Kit distribution complet — courroie + galets + tendeur (Gates / Dayco / Contitech)", qty: 1, priceMin: 150, priceMax: 320 },
       { label: "Pompe à eau (SKF / Airtex)", qty: 1, priceMin: 45, priceMax: 100 },
       { label: "Liquide de refroidissement", qty: 1, priceMin: 15, priceMax: 25 },
-      { label: "Galet tendeur / accessoires additionnels (si nécessaire)", qty: 1, priceMin: 30, priceMax: 60, optional: true },
+      { label: "Galet tendeur / accessoires additionnels", qty: 1, priceMin: 30, priceMax: 60, optional: true },
     ],
   },
   {
@@ -82,7 +82,7 @@ const CATEGORIES: QuoteCategory[] = [
     parts: [
       { label: "Kit embrayage complet — disque + mécanisme + butée (LuK / Valeo / Sachs)", qty: 1, priceMin: 180, priceMax: 320 },
       { label: "Liquide d'embrayage / consommables", qty: 1, priceMin: 10, priceMax: 20 },
-      { label: "Volant moteur bi-masse (fréquent sur diesel, si nécessaire)", qty: 1, priceMin: 180, priceMax: 380, optional: true },
+      { label: "Volant moteur bi-masse (fréquent sur diesel)", qty: 1, priceMin: 180, priceMax: 380, optional: true },
     ],
   },
   {
@@ -98,7 +98,7 @@ const CATEGORIES: QuoteCategory[] = [
     laborTier: "T2", hoursMin: 1.5, hoursMax: 2.5,
     parts: [
       { label: "Amortisseur (Monroe / KYB / Sachs)", qty: 2, priceMin: 60, priceMax: 110 },
-      { label: "Rotule / biellette de direction (TRW / Lemförder, si nécessaire)", qty: 1, priceMin: 15, priceMax: 35, optional: true },
+      { label: "Rotule / biellette de direction (TRW / Lemförder)", qty: 1, priceMin: 15, priceMax: 35, optional: true },
     ],
   },
   {
@@ -124,7 +124,7 @@ const CATEGORIES: QuoteCategory[] = [
     laborTier: "T2", hoursMin: 0.8, hoursMax: 1.2,
     parts: [
       { label: "Recharge gaz réfrigérant (R134a ou R1234yf selon véhicule)", qty: 1, priceMin: 35, priceMax: 70 },
-      { label: "Filtre d'habitacle (Mann Filter / Bosch, si non remplacé récemment)", qty: 1, priceMin: 10, priceMax: 20, optional: true },
+      { label: "Filtre d'habitacle (Mann Filter / Bosch)", qty: 1, priceMin: 10, priceMax: 20, optional: true },
     ],
   },
   {
@@ -133,7 +133,7 @@ const CATEGORIES: QuoteCategory[] = [
     laborTier: "T1", hoursMin: 0.4, hoursMax: 0.8,
     parts: [
       { label: "Batterie (Bosch / Varta / Banner, capacité selon véhicule)", qty: 1, priceMin: 90, priceMax: 180 },
-      { label: "Alternateur ou démarreur échange standard (Valeo / Bosch, si diagnostic le confirme)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
+      { label: "Alternateur ou démarreur échange standard (Valeo / Bosch)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
     ],
   },
   {
@@ -143,7 +143,7 @@ const CATEGORIES: QuoteCategory[] = [
     parts: [
       { label: "Silencieux ou tronçon de ligne (Bosal / Walker / Fonos)", qty: 1, priceMin: 80, priceMax: 160 },
       { label: "Collier(s) + joint(s)", qty: 1, priceMin: 8, priceMax: 15 },
-      { label: "Ligne d'échappement complète (si corrosion étendue)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
+      { label: "Ligne d'échappement complète (remplacement intégral)", qty: 1, priceMin: 150, priceMax: 280, optional: true },
     ],
   },
   {
@@ -234,6 +234,76 @@ export function priceCategory(category: QuoteCategory, year?: number, fuel?: Fue
   }
 
   return { category, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote };
+}
+
+/* ---------- Bon de commande garage (prix de référence, pas de fourchette) ----------
+   L'écran client garde des fourchettes (priceCategory/matchQuote, honnête sur
+   l'incertitude). Le garage, lui, veut un chiffre exploitable pour commander :
+   un prix de référence par pièce (milieu de fourchette), les pièces optionnelles
+   séparées du total (pas noyées dans un multiplicateur flou), et les majorations
+   âge/carburant en lignes à part avec un montant concret. */
+export type PriceLine = { label: string; qty: number; unitPrice: number; subtotal: number };
+
+export type GarageQuote = {
+  category: QuoteCategory;
+  requiredParts: PriceLine[];
+  optionalParts: PriceLine[];
+  laborHours: number;
+  laborRate: number;
+  laborTotal: number;
+  surcharges: PriceLine[];
+  partsTotal: number; // pièces requises + majorations (hors optionnelles)
+  grandTotal: number; // partsTotal + main d'œuvre
+  notApplicable?: boolean;
+};
+
+function refPrice(p: PartLine): number {
+  return Math.round((p.priceMin + p.priceMax) / 2);
+}
+
+export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelType): GarageQuote {
+  if (fuel === "electrique" && COMBUSTION_ONLY.has(category.id)) {
+    return {
+      category, requiredParts: [], optionalParts: [], laborHours: 0, laborRate: 0,
+      laborTotal: 0, surcharges: [], partsTotal: 0, grandTotal: 0, notApplicable: true,
+    };
+  }
+
+  const toLine = (p: PartLine): PriceLine => {
+    const unitPrice = refPrice(p);
+    return { label: p.label, qty: p.qty, unitPrice, subtotal: unitPrice * p.qty };
+  };
+  const requiredParts = category.parts.filter((p) => !p.optional).map(toLine);
+  const optionalParts = category.parts.filter((p) => p.optional).map(toLine);
+
+  const laborHours = Math.round(((category.hoursMin + category.hoursMax) / 2) * 10) / 10;
+  const laborRate = LABOR_RATES[category.laborTier];
+  const laborTotal = Math.round(laborHours * laborRate);
+
+  const requiredPartsSubtotal = requiredParts.reduce((s, l) => s + l.subtotal, 0);
+  const surcharges: PriceLine[] = [];
+
+  if (year && year > 1970 && year <= new Date().getFullYear()) {
+    const age = new Date().getFullYear() - year;
+    if (age >= 15) {
+      const amount = Math.round(requiredPartsSubtotal * 0.15);
+      if (amount > 0) surcharges.push({ label: "Majoration pièces d'usure probables (véhicule de +15 ans)", qty: 1, unitPrice: amount, subtotal: amount });
+    } else if (age >= 8) {
+      const amount = Math.round(requiredPartsSubtotal * 0.08);
+      if (amount > 0) surcharges.push({ label: "Majoration contrôle complémentaire probable (véhicule de +8 ans)", qty: 1, unitPrice: amount, subtotal: amount });
+    }
+  }
+
+  if (fuel === "diesel" && DIESEL_UPCHARGE.has(category.id)) {
+    const amount = Math.round(requiredPartsSubtotal * 0.1);
+    if (amount > 0) surcharges.push({ label: "Majoration pièces diesel (turbo / injection HP)", qty: 1, unitPrice: amount, subtotal: amount });
+  }
+
+  const surchargesTotal = surcharges.reduce((s, l) => s + l.subtotal, 0);
+  const partsTotal = requiredPartsSubtotal + surchargesTotal;
+  const grandTotal = partsTotal + laborTotal;
+
+  return { category, requiredParts, optionalParts, laborHours, laborRate, laborTotal, surcharges, partsTotal, grandTotal };
 }
 
 export function matchQuote(problem: string, year?: number, fuel?: FuelType): QuoteResult | null {
