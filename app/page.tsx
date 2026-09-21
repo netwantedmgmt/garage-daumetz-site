@@ -204,8 +204,52 @@ type PlateResult = {
   vin?: string; kType?: string; engineCode?: string; performance?: boolean;
 };
 
+const PROBLEM_EXAMPLES = FREQUENT_SEARCHES.map((s) => s.query);
+
+function useTypewriter(phrases: string[], active: boolean) {
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (!active) return;
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    function tick() {
+      const phrase = phrases[phraseIndex];
+      if (!deleting) {
+        charIndex++;
+        setText(phrase.slice(0, charIndex));
+        if (charIndex === phrase.length) {
+          deleting = true;
+          timeout = setTimeout(tick, 1500);
+          return;
+        }
+        timeout = setTimeout(tick, 45);
+      } else {
+        charIndex--;
+        setText(phrase.slice(0, charIndex));
+        if (charIndex === 0) {
+          deleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          timeout = setTimeout(tick, 350);
+          return;
+        }
+        timeout = setTimeout(tick, 28);
+      }
+    }
+
+    timeout = setTimeout(tick, 45);
+    return () => clearTimeout(timeout);
+  }, [phrases, active]);
+
+  return text;
+}
+
 function QuoteEstimator() {
   const [problem, setProblem] = useState("");
+  const typedExample = useTypewriter(PROBLEM_EXAMPLES, problem.length === 0);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
@@ -323,7 +367,7 @@ function QuoteEstimator() {
               <div className="qsearch-row-main">
                 <div className="qsearch-field qsearch-main">
                   <IconSearch width={18} height={18} />
-                  <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder="Ex : bruit au freinage, voyant moteur allumé…" />
+                  <input type="text" value={problem} onChange={(e) => setProblem(e.target.value)} placeholder={`Ex : ${typedExample}|`} />
                 </div>
                 <button className="btn btn-red qsearch-submit" type="submit">Estimer <span className="btn-arrow">→</span></button>
               </div>
