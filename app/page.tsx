@@ -578,7 +578,7 @@ export default function Home() {
       {/* HERO plein écran */}
       <section className="hero" id="top">
         <div className="hero-bg">
-          <Image src="/photos/dark.jpg" alt="Atelier du Garage D'Aumetz" fill priority sizes="100vw" style={{ objectFit: "cover" }} />
+          <Image src="/photos/hero-m4.jpg" alt="BMW M4 en intervention au Garage D'Aumetz" fill priority sizes="100vw" style={{ objectFit: "cover" }} />
           <div className="hero-scrim" aria-hidden />
         </div>
         <div className="wrap hero-inner">
