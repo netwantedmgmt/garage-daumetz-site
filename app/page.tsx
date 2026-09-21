@@ -490,7 +490,7 @@ function ServicesAccordion() {
               <div className="acc-body-inner">
                 <div className="acc-grid">
                   <div className="acc-media">
-                    <Image src={img} alt="" fill sizes="(max-width: 820px) 100vw, 40vw" style={{ objectFit: "cover" }} />
+                    <Image src={img} alt={`${s.t} — Garage D'Aumetz à Aumetz (57)`} fill sizes="(max-width: 820px) 100vw, 40vw" style={{ objectFit: "cover" }} />
                   </div>
                   <div className="acc-content">
                     <div className="acc-kicker">Ce qu&apos;on prend en charge</div>
@@ -583,7 +583,7 @@ export default function Home() {
         </div>
         <div className="wrap hero-inner">
           <h1 className="display hero-title">
-            Votre voiture entre de<br /><span className="r">bonnes mains</span>
+            Garage D&apos;Aumetz<br />votre voiture entre de <span className="r">bonnes mains</span>
           </h1>
           <p className="hero-sub">Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an. Toutes marques — entretien, freinage, distribution, diagnostic.</p>
           <div className="hero-cta">
