@@ -799,7 +799,7 @@ export default function Home() {
             </div>
             <div className="booking-info">
               <div className="binfo"><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Adresse</b><span>{SITE.street}, {SITE.postalCode} {SITE.city}</span></div></div>
-              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires <OpenStatus className="status-inline" /></b><span>Lun–Ven 8h30-12h / 14h-18h · Sam 9h-12h</span></div></div>
+              <div className="binfo"><span className="binfo-ic"><IconClock width={17} height={17} /></span><div><b>Horaires <OpenStatus className="status-inline" /></b><span>Lun–Ven 9h-12h / 14h-18h · Sam 9h-12h</span></div></div>
               <a className="binfo binfo-link" href={SITE.mapsDir} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("directions_click")}><span className="binfo-ic"><IconPin width={17} height={17} /></span><div><b>Itinéraire</b><span>Ouvrir dans Google Maps →</span></div></a>
             </div>
             <LocationMap />
@@ -840,7 +840,7 @@ export default function Home() {
               <a className="foot-line" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("footer")}><IconPhone width={16} height={16} /><span>{SITE.phone}</span></a>
               <a className="foot-line" href={`mailto:${SITE.email}`}><span className="foot-at">@</span><span>{SITE.email}</span></a>
               <p className="foot-line"><IconPin width={16} height={16} /><span>{SITE.street}<br />{SITE.postalCode} {SITE.city}</span></p>
-              <p className="foot-line"><IconClock width={16} height={16} /><span>Lun–Ven 8h30-12h / 14h-18h<br />Samedi 9h-12h</span></p>
+              <p className="foot-line"><IconClock width={16} height={16} /><span>Lun–Ven 9h-12h / 14h-18h<br />Samedi 9h-12h</span></p>
             </div>
           </div>
           <div className="foot-brand"><Image src="/full-logo-light.png" alt="Garage D'Aumetz" width={128} height={60} /></div>
