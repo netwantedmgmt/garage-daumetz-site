@@ -583,7 +583,7 @@ export default function Home() {
         </div>
         <div className="wrap hero-inner">
           <h1 className="display hero-title">
-            Votre voiture entre de<br /><span className="r hero-title-accent">bonnes mains</span>
+            Votre voiture entre de<br /><span className="hero-title-accent">bonnes mains</span>
           </h1>
           <p className="hero-sub">Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an. Toutes marques — entretien, freinage, distribution, diagnostic.</p>
           <div className="hero-cta">
