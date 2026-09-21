@@ -25,7 +25,7 @@ export default function MentionsLegalesPage() {
             Email : {SITE.email}<br />
             SIRET : 104 346 754 00013<br />
             N° TVA intracommunautaire : FR31 104 346 754<br />
-            Directeur de la publication : <em>[à compléter — gérant du garage]</em>
+            Directeur de la publication : Nabil DEKIK, gérant
           </p>
         </section>
 
