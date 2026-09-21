@@ -36,7 +36,7 @@ export const HOURS: Record<number, [number, number][]> = {
 };
 
 /* Note Google réelle (fiche Google Business — à actualiser périodiquement) */
-export const RATING = { value: 5, count: 29 } as const;
+export const RATING = { value: 5, count: 32 } as const;
 
 /* Avis Google réels (extraits de la fiche, légèrement nettoyés des troncatures). */
 export const REVIEWS = [
