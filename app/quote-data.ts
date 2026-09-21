@@ -5,14 +5,19 @@
 
 import { tierMultiplierFor, SPORT_MULTIPLIER, type FuelType } from "./vehicle-data";
 
-/* Grille tarifaire réelle communiquée par le garage (affiche atelier, 2026) :
-   T1 Entretien courant (vidange, filtres, freins, pneus, ampoules, échappement,
-   petites interventions) = 60€/h · T2 Diagnostic & mécanique technique
-   (distribution, embrayage, suspension, diagnostic électronique, climatisation)
-   = 70€/h · T3 Intervention lourde & expertise (gros démontage moteur, boîte
-   de vitesses, soudure) = 90€/h. Tarifs TTC (confirmé par le garage). */
+/* Grille tarifaire réelle communiquée par le garage (affiche atelier + prompt
+   assistant interne du garage, 2026) : T1 Entretien courant = 60€ HT/h ·
+   T2 Diagnostic & mécanique technique = 70€ HT/h · T3 Intervention lourde =
+   90€ HT/h. Confirmé HT par le prompt assistant du garage lui-même (calcul
+   HT → TVA 20% → TTC) — corrige une confusion précédente où ces tarifs
+   avaient été pris pour du TTC. */
 export type LaborTier = "T1" | "T2" | "T3";
 export const LABOR_RATES: Record<LaborTier, number> = { T1: 60, T2: 70, T3: 90 };
+
+/* TVA France standard, confirmée par le garage (son propre prompt assistant
+   interne). Appliquée une seule fois, à la toute fin, sur le total HT
+   (pièces + main d'œuvre + majorations) — jamais sur chaque ligne séparément. */
+export const TVA_RATE = 0.2;
 
 /* Une ligne de pièce/produit détaillée — jamais affichée au client (écran de
    résultat volontairement bref), uniquement dans le devis envoyé au garage.
@@ -31,6 +36,10 @@ export type QuoteCategory = {
   hoursMax: number;
   note?: string;
   parts: PartLine[];
+  /* Forfait HT fixe (ex. diagnostic 40-80€ HT chez le garage) — remplace le
+     calcul heures × taux horaire quand présent. hoursMin/hoursMax restent
+     purement informatifs (temps estimé affiché) dans ce cas. */
+  flatFeeHT?: { min: number; max: number };
 };
 
 function fullMultiplier(brand?: string, performance?: boolean): number {
@@ -93,6 +102,8 @@ const CATEGORIES: QuoteCategory[] = [
     id: "diagnostic", label: "Diagnostic / recherche de panne",
     keywords: ["voyant", "voyant moteur", "temoin allume", "bruit bizarre", "bruit etrange", "je ne sais pas", "panne", "perte de puissance", "fume", "fumee"],
     laborTier: "T2", hoursMin: 0.9, hoursMax: 1.5,
+    // Forfait fixe du garage : 40€ HT (simple) à 80€ HT (approfondi) — pas un calcul horaire.
+    flatFeeHT: { min: 40, max: 80 },
     note: "Lecture défauts (valise diagnostic) + recherche de panne — pièces à définir après identification de la cause.",
     parts: [],
   },
@@ -214,30 +225,44 @@ export function priceCategory(category: QuoteCategory, year?: number, fuel?: Fue
   const { min: partsMin, max: partsMax } = partsRange(category.parts, fullMultiplier(brand, performance));
   const { hoursMin, hoursMax } = category;
   const rate = LABOR_RATES[category.laborTier];
-  const laborMin = Math.round(hoursMin * rate);
-  const laborMax = Math.round(hoursMax * rate);
-  let totalMin = partsMin + laborMin;
-  let totalMax = partsMax + laborMax;
+  const laborMin = category.flatFeeHT ? category.flatFeeHT.min : Math.round(hoursMin * rate);
+  const laborMax = category.flatFeeHT ? category.flatFeeHT.max : Math.round(hoursMax * rate);
+  let totalMinHT = partsMin + laborMin;
+  let totalMaxHT = partsMax + laborMax;
   let ageNote: string | undefined;
   let fuelNote: string | undefined;
 
   if (year && year > 1970 && year <= new Date().getFullYear()) {
     const age = new Date().getFullYear() - year;
     if (age >= 15) {
-      totalMax = Math.round(totalMax * 1.3);
+      totalMaxHT = Math.round(totalMaxHT * 1.3);
       ageNote = "Véhicule de plus de 15 ans : pièces d'usure additionnelles parfois nécessaires, confirmées au diagnostic.";
     } else if (age >= 8) {
-      totalMax = Math.round(totalMax * 1.15);
+      totalMaxHT = Math.round(totalMaxHT * 1.15);
       ageNote = "Véhicule de plus de 8 ans : un contrôle complémentaire peut être proposé au diagnostic.";
     }
   }
 
   if (fuel === "diesel" && DIESEL_UPCHARGE.has(category.id)) {
-    totalMax = Math.round(totalMax * 1.1);
+    totalMaxHT = Math.round(totalMaxHT * 1.1);
     fuelNote = "Diesel : pièces généralement plus coûteuses (turbo, injection HP) — fourchette haute majorée de 10 %.";
   }
 
-  return { category, partsMin, partsMax, laborMin, laborMax, totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote };
+  // TVA 20% appliquée une seule fois, à la fin, sur le total HT (pièces + MO
+  // + majorations) — jamais ligne par ligne. Le client ne voit que du TTC ;
+  // les lignes pièces/MO affichées sont donc aussi converties en TTC pour
+  // rester cohérentes avec le total (le calcul précis reste basé sur le HT).
+  const totalMin = Math.round(totalMinHT * (1 + TVA_RATE));
+  const totalMax = Math.round(totalMaxHT * (1 + TVA_RATE));
+  const partsMinTTC = Math.round(partsMin * (1 + TVA_RATE));
+  const partsMaxTTC = Math.round(partsMax * (1 + TVA_RATE));
+  const laborMinTTC = Math.round(laborMin * (1 + TVA_RATE));
+  const laborMaxTTC = Math.round(laborMax * (1 + TVA_RATE));
+
+  return {
+    category, partsMin: partsMinTTC, partsMax: partsMaxTTC, laborMin: laborMinTTC, laborMax: laborMaxTTC,
+    totalMin, totalMax, hoursMin, hoursMax, ageNote, fuelNote,
+  };
 }
 
 /* ---------- Bon de commande garage (prix de référence, pas de fourchette) ----------
@@ -254,10 +279,13 @@ export type GarageQuote = {
   optionalParts: PriceLine[];
   laborHours: number;
   laborRate: number;
-  laborTotal: number;
+  laborTotal: number; // HT — 0 si forfait fixe (voir laborIsFlatFee)
+  laborIsFlatFee: boolean;
   surcharges: PriceLine[];
-  partsTotal: number; // pièces requises + majorations (hors optionnelles)
-  grandTotal: number; // partsTotal + main d'œuvre
+  partsTotal: number; // pièces requises + majorations (hors optionnelles), HT
+  subtotalHT: number; // partsTotal + laborTotal
+  tvaAmount: number; // subtotalHT × 20%
+  grandTotal: number; // subtotalHT + tvaAmount = TTC
   notApplicable?: boolean;
 };
 
@@ -268,8 +296,8 @@ function refPrice(p: PartLine, multiplier = 1): number {
 export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelType, brand?: string, performance?: boolean): GarageQuote {
   if (fuel === "electrique" && COMBUSTION_ONLY.has(category.id)) {
     return {
-      category, requiredParts: [], optionalParts: [], laborHours: 0, laborRate: 0,
-      laborTotal: 0, surcharges: [], partsTotal: 0, grandTotal: 0, notApplicable: true,
+      category, requiredParts: [], optionalParts: [], laborHours: 0, laborRate: 0, laborTotal: 0,
+      laborIsFlatFee: false, surcharges: [], partsTotal: 0, subtotalHT: 0, tvaAmount: 0, grandTotal: 0, notApplicable: true,
     };
   }
 
@@ -283,7 +311,10 @@ export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelT
 
   const laborHours = Math.round(((category.hoursMin + category.hoursMax) / 2) * 10) / 10;
   const laborRate = LABOR_RATES[category.laborTier];
-  const laborTotal = Math.round(laborHours * laborRate);
+  const laborIsFlatFee = !!category.flatFeeHT;
+  const laborTotal = category.flatFeeHT
+    ? Math.round((category.flatFeeHT.min + category.flatFeeHT.max) / 2)
+    : Math.round(laborHours * laborRate);
 
   const requiredPartsSubtotal = requiredParts.reduce((s, l) => s + l.subtotal, 0);
   const surcharges: PriceLine[] = [];
@@ -306,9 +337,14 @@ export function garageQuote(category: QuoteCategory, year?: number, fuel?: FuelT
 
   const surchargesTotal = surcharges.reduce((s, l) => s + l.subtotal, 0);
   const partsTotal = requiredPartsSubtotal + surchargesTotal;
-  const grandTotal = partsTotal + laborTotal;
+  const subtotalHT = partsTotal + laborTotal;
+  const tvaAmount = Math.round(subtotalHT * TVA_RATE);
+  const grandTotal = subtotalHT + tvaAmount;
 
-  return { category, requiredParts, optionalParts, laborHours, laborRate, laborTotal, surcharges, partsTotal, grandTotal };
+  return {
+    category, requiredParts, optionalParts, laborHours, laborRate, laborTotal, laborIsFlatFee,
+    surcharges, partsTotal, subtotalHT, tvaAmount, grandTotal,
+  };
 }
 
 export function matchQuote(problem: string, year?: number, fuel?: FuelType, brand?: string, performance?: boolean): QuoteResult | null {

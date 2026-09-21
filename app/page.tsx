@@ -432,7 +432,7 @@ function QuoteEstimator() {
                 {!sendOpen && sendState !== "ok" && (
                   <button type="button" className="qresult-vroomly-link" onClick={() => goVroomly("quote_" + result.category.id)}>ou réserver directement en ligne via Vroomly →</button>
                 )}
-                <p className="qresult-disclaimer">Estimation indicative à partir de tarifs moyens constatés, confirmée après diagnostic en atelier.</p>
+                <p className="qresult-disclaimer">Estimation indicative TTC à partir de tarifs moyens constatés, confirmée après diagnostic en atelier.</p>
               </div>
             ) : result?.notApplicable ? (
               <div className="qresult-card qresult-empty">

@@ -33,7 +33,7 @@ function buildEmailHtml(opts: {
   vin?: string; kType?: string; engineCode?: string;
 }): string {
   const { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode } = opts;
-  const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, partsTotal, grandTotal } = gq;
+  const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, laborIsFlatFee, subtotalHT, tvaAmount, grandTotal } = gq;
 
   // Lien de recherche direct (k-type + code moteur + prestation) : amène le
   // garage droit sur les vraies pages produit Autodoc/PiecesAuto-Pro/Mister
@@ -112,20 +112,28 @@ function buildEmailHtml(opts: {
           ${lineRowsHtml(requiredParts, "required") || noPartsRow}
           ${lineRowsHtml(surcharges, "surcharge")}
           <tr>
-            <td style="padding:9px 12px;color:#111;font-size:13.5px;font-weight:600;">Main d'œuvre — ${esc(category.label)}</td>
-            <td style="padding:9px 12px;color:#444;font-size:13.5px;text-align:center;">${laborHours} h</td>
-            <td style="padding:9px 12px;color:#444;font-size:13.5px;text-align:right;">${laborRate} €/h</td>
+            <td style="padding:9px 12px;color:#111;font-size:13.5px;font-weight:600;">${laborIsFlatFee ? `Forfait ${esc(category.label)}` : `Main d'œuvre — ${esc(category.label)}`}</td>
+            <td style="padding:9px 12px;color:#444;font-size:13.5px;text-align:center;">${laborIsFlatFee ? "—" : `${laborHours} h`}</td>
+            <td style="padding:9px 12px;color:#444;font-size:13.5px;text-align:right;">${laborIsFlatFee ? "forfait" : `${laborRate} €/h`}</td>
             <td style="padding:9px 12px;color:#111;font-size:13.5px;text-align:right;font-weight:600;">${laborTotal} €</td>
           </tr>
         </tbody>
         <tfoot>
+          <tr>
+            <td colspan="3" style="padding:8px 12px;font-size:13px;color:#666;">Total HT</td>
+            <td style="padding:8px 12px;font-size:13px;color:#666;text-align:right;">${subtotalHT} €</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="padding:8px 12px;font-size:13px;color:#666;">TVA (20%)</td>
+            <td style="padding:8px 12px;font-size:13px;color:#666;text-align:right;">${tvaAmount} €</td>
+          </tr>
           <tr style="background:#fff5f5;">
             <td colspan="3" style="padding:12px;font-size:14.5px;font-weight:700;color:#111;">Total estimé TTC</td>
             <td style="padding:12px;font-size:18px;font-weight:800;color:#ef3340;text-align:right;">${grandTotal} €</td>
           </tr>
         </tfoot>
       </table>
-      <div style="font-size:11.5px;color:#999;margin-bottom:10px;">Pièces ${partsTotal} € + main d'œuvre ${laborTotal} € = ${grandTotal} € TTC. Prix de référence (milieu de fourchette qualité moyenne-haute), pas une fourchette à recalculer.</div>
+      <div style="font-size:11.5px;color:#999;margin-bottom:10px;">Prix de référence HT (milieu de fourchette qualité moyenne-haute) + TVA 20% — pas une fourchette à recalculer.</div>
 
       ${optionalBlock}
 
@@ -141,8 +149,11 @@ function buildEmailText(opts: {
   vin?: string; kType?: string; engineCode?: string;
 }): string {
   const { name, phone, email, vehicleLabel, problem, gq, vin, kType, engineCode } = opts;
-  const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, partsTotal, grandTotal } = gq;
+  const { category, requiredParts, optionalParts, surcharges, laborHours, laborRate, laborTotal, laborIsFlatFee, subtotalHT, tvaAmount, grandTotal } = gq;
   const lineTxt = (l: PriceLine) => `- ${l.label} — x${l.qty} — ${l.unitPrice} € — sous-total ${l.subtotal} €`;
+  const laborLine = laborIsFlatFee
+    ? `- Forfait ${category.label} — ${laborTotal} € HT`
+    : `- Main d'œuvre — x${laborHours} h — ${laborRate} €/h — sous-total ${laborTotal} €`;
   return [
     `Nouveau devis envoyé depuis le site — prix de référence prêts à commander (à confirmer au diagnostic).`,
     ``, `CLIENT`, `Nom : ${name}`, `Téléphone : ${phone}`, email ? `Email : ${email}` : null,
@@ -159,8 +170,8 @@ function buildEmailText(opts: {
     ``, `PRESTATION IDENTIFIÉE : ${category.label}`,
     ...(requiredParts.length ? requiredParts.map(lineTxt) : [category.note || "Pas de pièce systématique — à définir au diagnostic."]),
     ...surcharges.map(lineTxt),
-    `- Main d'œuvre — x${laborHours} h — ${laborRate} €/h — sous-total ${laborTotal} €`,
-    ``, `Pièces : ${partsTotal} € · Main d'œuvre : ${laborTotal} € · TOTAL TTC : ${grandTotal} €`,
+    laborLine,
+    ``, `Total HT : ${subtotalHT} € · TVA (20%) : ${tvaAmount} € · TOTAL TTC : ${grandTotal} €`,
     optionalParts.length ? `` : null,
     optionalParts.length ? `PIÈCES COMPLÉMENTAIRES POSSIBLES (si diagnostic le confirme, non incluses ci-dessus) :` : null,
     ...optionalParts.map(lineTxt),
