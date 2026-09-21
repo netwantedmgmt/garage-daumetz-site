@@ -575,7 +575,7 @@ const WHY = [
   { ic: "shield", t: "Garantie 1 an", d: "Pièces et main d'œuvre garanties sur toutes nos interventions." },
   { ic: "clock", t: "Prise en charge rapide", d: "Souvent dans la journée. On téléphone, on vous prend, c'est réglé." },
   { ic: "check", t: "Prix respecté", d: "Devis clair, respecté à l'euro près. Aucune surprise à la facture." },
-  { ic: "star", t: "5/5 sur Google", d: "29 avis vérifiés. Un garage indépendant en qui on a confiance." },
+  { ic: "star", t: "5/5 sur Google", d: `${RATING.count} avis vérifiés. Un garage indépendant en qui on a confiance.` },
 ] as const;
 const WHY_ICON: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = { shield: IconShield, clock: IconClock, check: IconCheck, star: IconStar };
 
@@ -636,7 +636,7 @@ export default function Home() {
           </div>
           <div className="hero-meta">
             <OpenStatus />
-            <span className="hero-rating-inline"><span className="stars-inline" aria-hidden>{[0,1,2,3,4].map((s) => <IconStar key={s} width={14} height={14} />)}</span><b>5,0</b> · 29 avis Google</span>
+            <span className="hero-rating-inline"><span className="stars-inline" aria-hidden>{[0,1,2,3,4].map((s) => <IconStar key={s} width={14} height={14} />)}</span><b>{RATING.value.toLocaleString("fr-FR", { minimumFractionDigits: 1 })}</b> · {RATING.count} avis Google</span>
           </div>
         </div>
         <div className="hero-progress" aria-hidden><div className="wrap"><div className="hero-progress-bar" /></div></div>
@@ -649,7 +649,7 @@ export default function Home() {
         <div className="wrap stats-grid">
           <Reveal className="stat-cell"><div className="stat-num"><CountUp to={10} suffix="+" /></div><div className="stat-bar" /><div className="stat-label">Ans d&apos;expérience</div><p>Des années sous le capot, sur toutes les marques.</p></Reveal>
           <Reveal className="stat-cell" delay={0.06}><div className="stat-num"><CountUp to={3} /></div><div className="stat-bar" /><div className="stat-label">Mécaniciens</div><p>Une équipe réactive et un accueil clair.</p></Reveal>
-          <Reveal className="stat-cell" delay={0.12}><div className="stat-num">5<span className="stat-num-sm">/5</span></div><div className="stat-bar" /><div className="stat-label">Note Google</div><p>29 avis vérifiés, 100&nbsp;% de clients satisfaits.</p></Reveal>
+          <Reveal className="stat-cell" delay={0.12}><div className="stat-num">5<span className="stat-num-sm">/5</span></div><div className="stat-bar" /><div className="stat-label">Note Google</div><p>{RATING.count} avis vérifiés, 100&nbsp;% de clients satisfaits.</p></Reveal>
         </div>
       </section>
 
