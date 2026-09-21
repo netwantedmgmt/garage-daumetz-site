@@ -647,7 +647,7 @@ export default function Home() {
             </div>
           </div>
           <Reveal className="why-media" delay={0.1}>
-            <Image src="/photos/hero.jpg" alt="Mécanicien intervenant sur une voiture" fill sizes="(max-width: 900px) 100vw, 46vw" style={{ objectFit: "cover" }} />
+            <Image src="/photos/m4wood.jpg" alt="Mécanicien intervenant sur une BMW M4" fill sizes="(max-width: 900px) 100vw, 46vw" style={{ objectFit: "cover" }} />
           </Reveal>
         </div>
       </section>
