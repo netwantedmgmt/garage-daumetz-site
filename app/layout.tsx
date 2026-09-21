@@ -16,6 +16,12 @@ const general = localFont({
   ],
 });
 
+const glitch = localFont({
+  variable: "--font-glitch",
+  display: "swap",
+  src: [{ path: "./fonts/doctor-glitch.woff2", weight: "400", style: "normal" }],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: "Garage D'Aumetz — Garage & mécanique auto à Aumetz (57)",
@@ -107,7 +113,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${general.variable} antialiased`}>
+    <html lang="fr" className={`${general.variable} ${glitch.variable} antialiased`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         {children}

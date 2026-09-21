@@ -79,7 +79,7 @@ img { max-width: 100%; display: block; }
 .hero-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6,6,8,.96) 0%, rgba(6,6,8,.82) 42%, rgba(6,6,8,.3) 100%), linear-gradient(0deg, rgba(6,6,8,.9), transparent 45%); }
 .hero-inner { position: relative; z-index: 1; padding: 130px 0 80px; max-width: 800px; }
 .hero-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(46px, 7.4vw, 96px); line-height: 0.98; letter-spacing: -0.035em; margin: 0; }
-.hero-title-accent { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+.hero-title-accent { font-family: var(--font-glitch), Georgia, serif; font-style: normal; font-weight: 400; letter-spacing: -0.01em; }
 .hero-progress { position: absolute; left: 0; right: 0; bottom: 42px; z-index: 1; }
 .hero-progress .wrap { display: block; }
 .hero-progress-bar { height: 2px; width: 260px; max-width: 60%; background: rgba(255,255,255,.16); position: relative; overflow: hidden; }
