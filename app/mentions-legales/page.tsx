@@ -19,11 +19,12 @@ export default function MentionsLegalesPage() {
         <section className="legal-section">
           <h2>1. Éditeur du site</h2>
           <p>
-            {SITE.legalName}<br />
+            {SITE.legalName} — SARL au capital de 100 €<br />
             {SITE.street}, {SITE.postalCode} {SITE.city}, {SITE.region}, France<br />
             Téléphone : {SITE.phone}<br />
             Email : {SITE.email}<br />
-            SIRET : <em>[à compléter — fourni par le garage]</em><br />
+            SIRET : 104 346 754 00013<br />
+            N° TVA intracommunautaire : FR31 104 346 754<br />
             Directeur de la publication : <em>[à compléter — gérant du garage]</em>
           </p>
         </section>
