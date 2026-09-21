@@ -19,7 +19,7 @@ const general = localFont({
 const glitch = localFont({
   variable: "--font-glitch",
   display: "swap",
-  src: [{ path: "./fonts/doctor-glitch.woff2", weight: "400", style: "normal" }],
+  src: [{ path: "./fonts/chinese-rocks.woff2", weight: "400", style: "normal" }],
 });
 
 export const metadata: Metadata = {
