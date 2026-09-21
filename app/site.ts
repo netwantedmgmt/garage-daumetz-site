@@ -13,8 +13,7 @@ export const SITE = {
   country: "FR",
   lat: 49.4211,
   lng: 5.9403,
-  // ⚠️ À remplacer par le vrai domaine une fois branché sur Vercel
-  url: "https://garage-daumetz.fr",
+  url: "https://www.garagedaumetz.fr",
   vroomly: "https://www.vroomly.com/garages/garage-daumetz-57710-scierie/",
   // ⚠️ À remplacer par le lien de la fiche Google Business réelle (avis + itinéraire)
   googleReviews:
