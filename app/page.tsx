@@ -460,14 +460,25 @@ function QuoteEstimator() {
 }
 
 /* ---------- Services accordion (numéroté, façon Autovera) ---------- */
-const SERVICE_IMG = ["/photos/hero.jpg", "/photos/engine.jpg", "/photos/dark.jpg", "/photos/wheel.jpg"];
+/* Une photo dédiée par prestation (générées IA, cf. mémoire projet) — plus de
+   cycle générique sur 4 photos sans rapport avec la prestation affichée. */
+const SERVICE_IMG: Record<string, string> = {
+  vidange: "/photos/vidange.jpg",
+  frein: "/photos/freinage.jpg",
+  distribution: "/photos/distribution.jpg",
+  diagnostic: "/photos/diagnostic.jpg",
+  suspension: "/photos/suspension.jpg",
+  pneu: "/photos/pneumatiques.jpg",
+  clim: "/photos/climatisation.jpg",
+  batterie: "/photos/batterie.jpg",
+};
 function ServicesAccordion() {
   const [open, setOpen] = useState(0);
   return (
     <div className="acc">
       {PRESTATIONS.map((s, i) => {
         const isOpen = open === i;
-        const img = SERVICE_IMG[i % SERVICE_IMG.length];
+        const img = SERVICE_IMG[s.ic] || "/photos/hero.jpg";
         return (
           <div className={`acc-item ${isOpen ? "open" : ""}`} key={s.t}>
             <button className="acc-head" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen}>
