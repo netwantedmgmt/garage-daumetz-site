@@ -62,7 +62,7 @@ img { max-width: 100%; display: block; }
 .hdr-nav { display: flex; align-items: center; gap: 30px; }
 .hdr-nav a.link { font-weight: 500; font-size: 14px; color: rgba(255,255,255,.72); transition: color .18s; }
 .hdr-nav a.link:hover { color: #fff; }
-.nav-logo { height: 42px; width: auto; }
+.nav-logo { height: 52px; width: auto; }
 .hdr-tel { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: #fff; }
 .hdr-tel svg { color: var(--red-2); }
 @media (max-width: 1040px) { .hdr-nav a.hdr-tel { display: none; } }
