@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     title: "Garage D'Aumetz — Garage & mécanique auto à Aumetz (57)",
     description:
       "Devis clair en 2 minutes, prix respecté, travail garanti 1 an. Toutes marques, à Aumetz (Moselle).",
-    images: [{ url: "/photos/hero-m4.jpg", width: 2368, height: 1776, alt: "Garage D'Aumetz" }],
+    images: [{ url: "/photos/og-card.jpg", width: 1200, height: 630, alt: "Garage D'Aumetz" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Garage D'Aumetz — Garage & mécanique auto à Aumetz (57)",
     description:
       "Devis clair en 2 minutes, prix respecté, travail garanti 1 an. Toutes marques, à Aumetz (Moselle).",
-    images: ["/photos/hero-m4.jpg"],
+    images: ["/photos/og-card.jpg"],
   },
   robots: { index: true, follow: true },
 };
