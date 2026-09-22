@@ -822,7 +822,6 @@ export default function Home() {
                 {/* Instagram/X à brancher quand les comptes seront créés */}
                 <a href="#" aria-label="Instagram (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconInstagram width={18} height={18} /></a>
                 <a href="#" aria-label="X / Twitter (bientôt disponible)" className="foot-social-btn" onClick={(e) => e.preventDefault()}><IconX width={18} height={18} /></a>
-                <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" aria-label="Vroomly" className="foot-social-btn" onClick={() => goVroomly("footer_social")}><span className="icon-vroomly" aria-hidden /></a>
               </div>
             </div>
             <div className="foot-col">
@@ -831,7 +830,7 @@ export default function Home() {
             </div>
             <div className="foot-col">
               <h5>Liens</h5>
-              <a href={SITE.vroomly} target="_blank" rel="noopener noreferrer" onClick={() => goVroomly("footer")}>Devis en ligne</a>
+              <a href="#devis-instantane">Devis en ligne</a>
               <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a>
               <a href={SITE.googleReviews} target="_blank" rel="noopener noreferrer">Avis Google</a>
             </div>

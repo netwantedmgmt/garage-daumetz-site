@@ -361,15 +361,6 @@ select.qsearch-side:invalid, select.qsearch-side option[value=""] { color: var(-
 .foot-social { display: flex; gap: 10px; margin-top: 20px; }
 .foot-social-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); color: var(--text-soft); display: grid; place-items: center; transition: all .18s; }
 .foot-social-btn:hover { color: #fff; border-color: var(--red); background: var(--surface-2); }
-/* Logo Vroomly (vroomly-mark.png) appliqué en masque : suit currentColor
-   exactement comme les icônes SVG voisines (même gris au repos, même blanc au survol). */
-.icon-vroomly {
-  display: block; width: 18px; height: 18px; background-color: currentColor;
-  -webkit-mask-image: url("/vroomly-mark.png"); mask-image: url("/vroomly-mark.png");
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-size: contain; mask-size: contain;
-}
 .foot-col h5 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; color: var(--red-2); }
 .foot-col a, .foot-col p { display: block; font-size: 14.5px; color: var(--text-soft); margin-bottom: 10px; transition: color .18s; }
 .foot-col a:hover { color: var(--text); }
