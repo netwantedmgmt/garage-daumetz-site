@@ -560,7 +560,7 @@ const PRESTATIONS = [
   { ic: "distribution", t: "Distribution", d: "Kit de distribution, pompe à eau, embrayage. L'intervention lourde faite dans les règles.", p: "dès 450 €" },
   { ic: "diagnostic", t: "Diagnostic", d: "Lecture des défauts et recherche de panne. On identifie avant de toucher à quoi que ce soit.", p: "dès 55 €" },
   { ic: "suspension", t: "Suspension & géométrie", d: "Amortisseurs, rotules, parallélisme. Une tenue de route saine et un roulage confortable.", p: "dès 160 €" },
-  { ic: "pneu", t: "Pneumatiques", d: "Montage, équilibrage et permutation, toutes dimensions. Un vrai contact avec la route.", p: "dès 22 €/pneu" },
+  { ic: "pneu", t: "Pneumatiques", d: "Montage, équilibrage et permutation, toutes dimensions. Pneus hiver ou 4 saisons pour bien négocier les conditions hivernales.", p: "dès 22 €/pneu" },
   { ic: "clim", t: "Climatisation", d: "Recharge, contrôle d'étanchéité et filtre d'habitacle. Le confort qui revient l'été.", p: "dès 79 €" },
   { ic: "batterie", t: "Batterie & démarrage", d: "Batterie, alternateur, démarreur. Fini les mauvaises surprises un matin d'hiver.", p: "dès 95 €" },
 ] as const;
@@ -759,7 +759,7 @@ export default function Home() {
           <Reveal className="about-card" delay={0.08}>
             <div className="eyebrow eyebrow-bar">Le garage</div>
             <h2 className="display">Passion mécanique.<br />Exigence du travail bien fait.</h2>
-            <p>Garage indépendant certifié à Aumetz, on met la même précision et le même soin sur chaque voiture qui entre à l&apos;atelier. Pièces d&apos;origine ou équivalentes, jamais du bas de gamme.</p>
+            <p>Garage indépendant d&apos;entretien et de réparation automobile à Aumetz (57710), entre Thionville et la frontière luxembourgeoise — on accueille aussi les clients d&apos;Audun-le-Tiche, Fontoy et Boulange. Même précision et même soin sur chaque voiture qui entre à l&apos;atelier, pièces d&apos;origine ou équivalentes, jamais du bas de gamme.</p>
             <p>Devis clair, prix respecté, travail garanti 1 an. Vous savez ce que vous payez, et pourquoi.</p>
             <button className="btn btn-red" onClick={() => goVroomly("about")}>Prendre rendez-vous <span className="btn-arrow">→</span></button>
           </Reveal>

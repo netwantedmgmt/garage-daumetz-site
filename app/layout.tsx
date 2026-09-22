@@ -73,7 +73,7 @@ const jsonLd = {
         addressCountry: SITE.country,
       },
       geo: { "@type": "GeoCoordinates", latitude: SITE.lat, longitude: SITE.lng },
-      areaServed: [SITE.city, "Moselle", "Audun-le-Tiche", "Boulange", "Fontoy"],
+      areaServed: [SITE.city, "Moselle", "Audun-le-Tiche", "Boulange", "Fontoy", "Thionville"],
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: RATING.value,
