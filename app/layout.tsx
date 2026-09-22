@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: "Garage D'Aumetz — Garage & mécanique auto à Aumetz (57)",
   description:
-    "Garage automobile indépendant à Aumetz (Moselle). Devis clair en 2 minutes, prix respecté, travail garanti 1 an. Toutes marques : vidange, freinage, distribution, diagnostic, pneus.",
+    "Garage indépendant à Aumetz (Moselle) : devis clair en 2 min, prix respecté, garanti 1 an. Vidange, freinage, distribution, diagnostic, pneus.",
   keywords: [
     "garage Aumetz", "mécanique Aumetz", "garage automobile 57710", "vidange Aumetz",
     "freinage Aumetz", "diagnostic auto Moselle", "pneus Aumetz", "garage indépendant Moselle",
