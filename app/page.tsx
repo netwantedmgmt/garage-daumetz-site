@@ -614,7 +614,7 @@ export default function Home() {
             <a className="link" href="#avis">Avis</a>
             <a className="link" href="#faq">FAQ</a>
             <a className="link hdr-tel" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("header")}><IconPhone width={16} height={16} /> {SITE.phone}</a>
-            <button className="btn btn-red btn-sm" onClick={() => goVroomly("header")}>Devis &amp; RDV</button>
+            <a className="btn btn-red btn-sm" href="#devis-instantane" onClick={() => trackEvent("nav_devis_click", { src: "header" })}>Devis &amp; RDV</a>
           </nav>
         </div>
       </header>
