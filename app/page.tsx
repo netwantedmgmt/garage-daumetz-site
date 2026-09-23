@@ -761,6 +761,7 @@ export default function Home() {
             <h2 className="display">Passion mécanique.<br />Exigence du travail bien fait.</h2>
             <p>Garage indépendant d&apos;entretien et de réparation automobile à Aumetz (57710), entre Thionville et la frontière luxembourgeoise — on accueille aussi les clients d&apos;Audun-le-Tiche, Fontoy et Boulange. Même précision et même soin sur chaque voiture qui entre à l&apos;atelier, pièces d&apos;origine ou équivalentes, jamais du bas de gamme.</p>
             <p>Devis clair, prix respecté, travail garanti 1 an. Vous savez ce que vous payez, et pourquoi.</p>
+            <p>Le savoir-faire d&apos;une équipe de professionnels de la mécanique, au service de chaque client.</p>
             <button className="btn btn-red" onClick={() => goVroomly("about")}>Prendre rendez-vous <span className="btn-arrow">→</span></button>
           </Reveal>
         </div>
