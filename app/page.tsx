@@ -767,11 +767,6 @@ export default function Home() {
           <div className="about-scrim" />
         </div>
         <div className="wrap about-grid">
-          <div className="about-stats">
-            <Reveal className="about-stat"><b><CountUp to={10} suffix="+" /></b><span>Ans d&apos;expérience</span></Reveal>
-            <Reveal className="about-stat" delay={0.06}><b><CountUp to={3} /></b><span>Mécaniciens</span></Reveal>
-            <Reveal className="about-stat" delay={0.12}><b>5/5</b><span>Note Google</span></Reveal>
-          </div>
           <Reveal className="about-card" delay={0.08}>
             <div className="eyebrow eyebrow-bar">Le garage</div>
             <h2 className="display">Passion mécanique.<br />Exigence du travail bien fait.</h2>
