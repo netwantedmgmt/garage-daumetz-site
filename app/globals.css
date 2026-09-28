@@ -126,7 +126,7 @@ select.qsearch-side:invalid, select.qsearch-side option[value=""] { color: var(-
   .qsearch-row-main { flex-direction: column; }
   .qsearch-submit { width: 100%; }
   .qsearch-row-filters { flex-direction: column; }
-  .qsearch-side { width: 100%; }
+  .qsearch-side { width: 100%; flex-basis: auto; }
 }
 
 .qplate-row { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
