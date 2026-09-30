@@ -57,14 +57,26 @@ function partsRange(parts: PartLine[], multiplier = 1): { min: number; max: numb
 
 const CATEGORIES: QuoteCategory[] = [
   {
-    id: "vidange", label: "Vidange & entretien",
+    id: "vidange", label: "Vidange",
     keywords: ["vidange", "huile moteur", "huile", "filtre a huile", "niveau d'huile", "niveau huile", "entretien courant", "revision"],
     laborTier: "T1", hoursMin: 0.5, hoursMax: 0.8,
     parts: [
       { label: "Huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, ~5L)", qty: 1, priceMin: 35, priceMax: 55 },
       { label: "Filtre à huile (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 10, priceMax: 18 },
       { label: "Joint de vidange", qty: 1, priceMin: 2, priceMax: 5 },
-      { label: "Filtre à air (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 12, priceMax: 22, optional: true },
+    ],
+  },
+  {
+    id: "vidange_complete", label: "Vidange complète",
+    keywords: ["vidange complete", "vidange complète", "grosse vidange", "vidange totale", "vidange integrale", "vidange intégrale"],
+    note: "La totale : huile, filtre à huile, filtre à air, et filtre à gasoil sur diesel.",
+    laborTier: "T1", hoursMin: 0.7, hoursMax: 1,
+    parts: [
+      { label: "Huile moteur 5W30/5W40 (Total Quartz / Motul / Elf, ~5L)", qty: 1, priceMin: 35, priceMax: 55 },
+      { label: "Filtre à huile (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 10, priceMax: 18 },
+      { label: "Joint de vidange", qty: 1, priceMin: 2, priceMax: 5 },
+      { label: "Filtre à air (Bosch / Mann Filter / Purflux)", qty: 1, priceMin: 12, priceMax: 22 },
+      { label: "Filtre à gasoil (Bosch / Purflux, diesel uniquement)", qty: 1, priceMin: 15, priceMax: 28, optional: true },
     ],
   },
   {
