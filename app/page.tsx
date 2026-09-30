@@ -632,7 +632,7 @@ export default function Home() {
           </h1>
           <p className="hero-sub">Devis clair en 2 minutes, prix respecté à l&apos;euro près, travail garanti 1 an. Toutes marques — entretien, freinage, distribution, diagnostic.</p>
           <div className="hero-cta">
-            <button className="btn btn-red btn-lg" onClick={() => goVroomly("hero")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+            <a className="btn btn-red btn-lg" href="#devis-instantane" onClick={() => trackEvent("devis_click", { src: "hero" })}>Obtenir mon devis <span className="btn-arrow">→</span></a>
             <a className="btn btn-glass btn-lg" href="#tarifs">Voir les tarifs</a>
           </div>
           <div className="hero-meta">
@@ -807,7 +807,7 @@ export default function Home() {
             <h2 className="display">Prêt à confier votre voiture&nbsp;?</h2>
             <p>Laissez votre numéro : on vous rappelle rapidement. Ou obtenez votre devis en ligne en 2 minutes.</p>
             <div className="booking-cta">
-              <button className="btn btn-red btn-lg" onClick={() => goVroomly("contact")}>Obtenir mon devis <span className="btn-arrow">→</span></button>
+              <a className="btn btn-red btn-lg" href="#devis-instantane" onClick={() => trackEvent("devis_click", { src: "contact" })}>Obtenir mon devis <span className="btn-arrow">→</span></a>
               <a className="btn btn-outline btn-lg" href={`tel:${SITE.phoneTel}`} onClick={() => onCall("contact")}><IconPhone width={17} height={17} /> {SITE.phone}</a>
             </div>
             <div className="booking-info">
