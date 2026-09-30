@@ -626,6 +626,7 @@ export default function Home() {
           <div className="hero-scrim" aria-hidden />
         </div>
         <div className="wrap hero-inner">
+          <div className="eyebrow eyebrow-bar">Garage à Aumetz, Moselle</div>
           <h1 className="display hero-title">
             Votre voiture entre de<br /><span className="hero-title-accent">bonnes mains</span>
           </h1>
